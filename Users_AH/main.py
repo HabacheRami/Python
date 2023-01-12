@@ -17,7 +17,7 @@ app.config['MYSQL_DB'] = 'MyDB'
 # Intialize MySQL
 mysql = MySQL(app)
 
-# http://localhost:5000/pythinlogin/home - this will be the home page, only accessible for loggedin users
+# http://localhost:5000/ - this will be the home page, only accessible for loggedin users
 @app.route('/')
 def home():
     # Check if user is loggedin
@@ -27,7 +27,7 @@ def home():
     # User is not loggedin redirect to login page
     return redirect(url_for('login'))
 
-# http://localhost:5000/pythonlogin/ - the following will be our login page, which will use both GET and POST requests
+# http://localhost:5000/login - the following will be our login page, which will use both GET and POST requests
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     # Output message if something goes wrong...
@@ -35,7 +35,7 @@ def login():
     return render_template('index.html', msg='')
     
 
-# http://localhost:5000/pythinlogin/register - this will be the registration page, we need to use both GET and POST requests
+# http://localhost:5000/register - this will be the registration page, we need to use both GET and POST requests
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     # Output message if something goes wrong...
