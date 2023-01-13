@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Jan 13, 2023 at 08:17 AM
+-- Generation Time: Jan 13, 2023 at 08:22 AM
 -- Server version: 5.7.24
 -- PHP Version: 8.0.1
 
@@ -18,8 +18,24 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `python`
+-- Database: `mydb`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `patient`
+--
+
+CREATE TABLE `patient` (
+  `id` int(11) DEFAULT NULL,
+  `login` varchar(255) NOT NULL,
+  `symptome` text NOT NULL,
+  `maladie` text NOT NULL,
+  `description` text NOT NULL,
+  `date` date NOT NULL,
+  `medoc` text NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
