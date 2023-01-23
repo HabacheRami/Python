@@ -29,12 +29,10 @@ def home():
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         id = session['id']
         cursor.execute(
-            'SELECT * FROM user WHERE id = %s', (id,) )
+            'SELECT * FROM user WHERE id = %s', (id,))
         # Fetch one record and return result
         account = cursor.fetchone()
-        pprint(account)
-        return 'already log'
-        #return render_template('home.html', username=session['username'])
+        return render_template('home.html', account=account)
     # User is not loggedin redirect to login page
     return redirect(url_for('login'))
 
@@ -43,7 +41,7 @@ def home():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    msg=''
+    msg = ''
     # Check if "username" and "password" POST requests exist (user submitted form)
     if request.method == 'POST' and 'username' in request.form and 'password' in request.form:
         # Create variables for easy access
@@ -52,7 +50,7 @@ def login():
             msg = 'Please enter an username'
         password = request.form['password']
         if password is None:
-            msg= 'Please enter an password'
+            msg = 'Please enter an password'
         # Check if account exists using MySQL
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute(
@@ -68,8 +66,9 @@ def login():
             session['loggedin'] = True
             session['id'] = account['id']
             session['username'] = account['username']
+            session['role'] = account['role']
             # Redirect to home page
-            return 'Logged in successfully!'
+            return redirect(url_for('home'))
         else:
             # Account doesnt exist or username/password incorrect
             msg = 'Incorrect username/password!'
@@ -78,29 +77,124 @@ def login():
 # http://localhost:5000/register - this will be the registration page, we need to use both GET and POST requests
 
 
-@app.route('/register', methods=['GET', 'POST'])
-def register():
+@app.route('/register/doctor', methods=['GET', 'POST'])
+def register_doctor():
     # Output message if something goes wrong...
     msg = ''
-    # Check if "username", "password" and "email" POST requests exist (user submitted form)
-    if request.method == 'POST' and 'username' in request.form and 'password' in request.form and 'email' in request.form:
-        # Create variables for easy access
-        username = request.form['username']
-        password = request.form['password']
-        email = request.form['email']
-    elif request.method == 'POST':
-        # Form is empty... (no POST data)
-        msg = 'Please fill out the form!'
-    # Show registration form with message (if any)
-    return render_template('register.html', msg=msg)
+    # Check if user is loggedin
+    if 'loggedin' in session:
+        # Check if POST requests exist
+        if request.method == 'POST':
+            # Create variables for easy access
+            username = request.form['username']
+            name = request.form['name']
+            firstname = request.form['firstname']
+            phone = request.form['phone']
+            date = request.form['date']
+            role = 'Admin'
+            password = request.form['password']
+            email = request.form['email']
+            # Check if username exists
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            cursor.execute(
+                'SELECT * FROM user WHERE username = %s', (username,))
+            account = cursor.fetchone()
+            # If account exists show error and validation checks
+            if account:
+                msg = 'Account already exists!'
+            # Regex email
+            elif not re.match(r'[^@]+@[^@]+\.[^@]+', email):
+                msg = 'Invalid email address!'
+            # Regex name
+            elif not re.match(r'[A-Za-z0-9]+', username):
+                msg = 'Username must contain only characters and numbers!'
+            # Check if variable not null
+            elif username is None or name is None or firstname is None or phone is None or date is None or password is None or email is None:
+                msg = 'Please fill out the form!'
+            else:
+                # Account doesnt exists and the form data is valid, now insert new account into accounts table
+                cursor.execute('INSERT INTO user VALUES (0, %s, %s, %s, %s, %s, %s, 0, %s, %s)',
+                            (username, name, firstname, email, phone, date, password, role,))
+                mysql.connection.commit()
+                msg = 'You have successfully registered!'
+        elif request.method == 'POST':
+            # Form is empty... (no POST data)
+            msg = 'Please fill out the form!'
+        # Show registration form with message (if any)
+        return render_template('register/doctor.html', msg=msg)
+    return redirect(url_for('login'))
+
+
+@app.route('/register/patient', methods=['GET', 'POST'])
+def register_patient():
+    # Output message if something goes wrong...
+    msg = ''
+    # Check if user is loggedin
+    if 'loggedin' in session:
+        # Check if POST requests exist
+        if request.method == 'POST':
+            # Create variables for easy access
+            username = request.form['username']
+            file = request.form['file']
+            name = request.form['name']
+            firstname = request.form['firstname']
+            description = request.form['description']
+            drug = request.form['drug']
+            date = request.form['date']
+            pprint(request)
+            # Check if username exists
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            cursor.execute(
+                'SELECT * FROM patient WHERE username = %s', (username,))
+            account = cursor.fetchone()
+            # If account exists show error and validation checks
+            if account:
+                msg = 'Account already exists!'
+            # Regex name
+            elif not re.match(r'[A-Za-z0-9]+', username):
+                msg = 'Username must contain only characters and numbers!'
+            # Regex file
+            elif not re.match(r'[0-9]+', file):
+                msg = 'File must contain only numbers!'
+            # Check form
+            elif username is None or file is None or name is None or firstname is None or description is None or drug is None or date is None:
+                msg = 'Please fill out the form!'
+            else:
+                # Account doesnt exists and the form data is valid, now insert new account into accounts table
+                cursor.execute('INSERT INTO patient VALUES (0, %s, %s, %s, %s, %s, %s, %s)',
+                            (username, file, name, firstname, description, drug, date,))
+                mysql.connection.commit()
+                msg = 'You have successfully registered!'
+        elif request.method == 'POST':
+            # Form is empty... (no POST data)
+            msg = 'Please fill out the form!'
+        # Show registration form with message (if any)
+        return render_template('register/patient.html', msg=msg)
+    return redirect(url_for('login'))
 
 
 # http://localhost:5000/python/logout - this will be the logout page
-@app.route('/pythonlogin/logout')
+@app.route('/logout')
 def logout():
     # Remove session data, this will log the user out
     session.pop('loggedin', None)
     session.pop('id', None)
     session.pop('username', None)
     # Redirect to login page
+    return redirect(url_for('login'))
+
+# http://localhost:5000/pythinlogin/profile - this will be the profile page, only accessible for loggedin users
+
+
+@app.route('/profile')
+def profile():
+    # Check if user is loggedin
+    if 'loggedin' in session:
+        # We need all the account info for the user so we can display it on the profile page
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute('SELECT * FROM user WHERE id = %s', (session['id'],))
+        account = cursor.fetchone()
+        # Show the profile page with account info
+        return render_template('profile.html', account=account)
+    # User is not loggedin redirect to login page
     return redirect(url_for('login'))

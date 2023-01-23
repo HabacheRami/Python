@@ -6,7 +6,7 @@ create database if not exists hospital;
 create table hospital.patient (
 	id int(11) primary key,
     username varchar(100) unique not null,
-    dossier int(11) not null,
+    file int(11) not null,
     name varchar(100),
     firstname varchar(100),
     description text,
@@ -29,6 +29,6 @@ create table hospital.user (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /* add Sadmin */
-INSERT INTO user (`id`, `username`, `name`, `firstname`, `email`, `phone`, `date`, `actived`, `password`, `role`) VALUES
+INSERT INTO hospital.user (`id`, `username`, `name`, `firstname`, `email`, `phone`, `date`, `actived`, `password`, `role`) VALUES
 ('1', 'Sadmin', 'Super', 'Admin', 'direction@americanhospital.com', '0662793686', '2023-01-12', '1', 'Sadmin', 'SuperAdmin');
 

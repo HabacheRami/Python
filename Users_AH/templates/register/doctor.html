@@ -1,0 +1,47 @@
+{% extends 'layout.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<h2>Add an User</h2>
+<div class="register" style="padding: inherit; margin: inherit;">
+<h1>Register</h1>
+<div class="links">
+	<a href="{{ url_for('register_doctor') }}" class="active">Doctor</a>
+	<a href="{{ url_for('register_patient') }}">Patient</a>
+</div>
+<form action="{{ url_for('register_doctor') }}" method="post" autocomplete="off">
+	<label for="name">
+		<i class="fas fa-user-md"></i>
+	</label>
+	<input type="text" name="name" placeholder="name" id="name" required>
+	<label for="firstname">
+		<i class="fas fa-user"></i>
+	</label>
+	<input type="text" name="firstname" placeholder="firstname" id="firstname" required>
+	<label for="email">
+		<i class="fas fa-envelope"></i>
+	</label>
+	<input type="text" name="email" placeholder="email" id="email" required>
+	<label for="phone">
+		<i class="fas fa-phone-square"></i>
+	</label>
+	<input type="text" id="phone" name="phone" pattern="[0-9]{10}" required>
+	<label for="date">
+		<i class="fas fa-calendar"></i>
+	</label>
+	<input type="date" id="date" name="date" required>
+	<label for="username">
+		<i class="fas fa-user"></i>
+	</label>
+	<input type="text" name="username" placeholder="Username" id="username" required>
+	<label for="password">
+		<i class="fas fa-lock"></i>
+	</label>
+	<input type="password" name="password" placeholder="Password" id="password" required>
+	<!-- /** INSERT INTO `user` (`name`, `firstname`, `email`, `phone`, `date`, `status`, `login`, `password`, `role`) **/ -->
+	<div class="msg">{{ msg }}</div>
+	<input type="submit" value="Save">
+</form>
+</div>
+{% endblock %}

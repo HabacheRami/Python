@@ -1,0 +1,47 @@
+{% extends 'layout.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<h2>Add an User</h2>
+<div class="register" style="padding: inherit; margin: inherit;">
+<h1>Register</h1>
+<div class="links">
+	<a href="{{ url_for('register_doctor') }}">Doctor</a>
+	<a href="{{ url_for('register_patient') }}" class="active">Patient</a>
+</div>
+<form action="{{ url_for('register_patient') }}" method="post" autocomplete="off">
+	<label for="username">
+		<i class="fas fa-thermometer-full"></i>
+	</label>
+	<input type="text" name="username" placeholder="Username" id="username" required>
+	<label for="file">
+		<i class="fas fa-archive"></i>
+	</label>
+	<input type="text" name="file" placeholder="File" id="file" required>
+	<label for="name">
+		<i class="fas fa-user"></i>
+	</label>
+	<input type="text" name="name" placeholder="Name" id="name" required>
+	<label for="firstname">
+		<i class="fas fa-user"></i>
+	</label>
+	<input type="text" name="firstname" placeholder="Firstname" id="firstname" required>
+	<label for="description">
+		<i class="fas fa-comment"></i>
+	</label>
+	<textarea type="text" id="description" name="description" rows="5" cols="39" placeholder="Description"></textarea>
+	<label for="drug" style="margin-top: 20px;">
+		<i class="fas fa-archive"></i>
+	</label>
+	<input type="drug" name="drug" placeholder="Drug" id="drug" style="margin-top: 20px;" required>
+	<label for="date">
+		<i class="fas fa-calendar"></i>
+	</label>
+	<input type="date" id="date" name="date" required>
+	<div class="msg">{{ msg }}</div>
+	<input type="submit" value="Save">
+	<!-- /** INSERT INTO `patient` (`username`, `file`, `firstname`, `description`, `drug`, `date`) **/ -->
+</form>
+</div>
+{% endblock %}
