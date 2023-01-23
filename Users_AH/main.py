@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
 import re
+from pprint import pprint
 
 app = Flask(__name__)
 
@@ -25,7 +26,15 @@ def home():
     # Check if user is loggedin
     if 'loggedin' in session:
         # User is loggedin show them the home page
-        return render_template('home.html', username=session['username'])
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        id = session['id']
+        cursor.execute(
+            'SELECT * FROM user WHERE id = %s', (id,) )
+        # Fetch one record and return result
+        account = cursor.fetchone()
+        pprint(account)
+        return 'already log'
+        #return render_template('home.html', username=session['username'])
     # User is not loggedin redirect to login page
     return redirect(url_for('login'))
 
@@ -34,6 +43,7 @@ def home():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    msg=''
     # Check if "username" and "password" POST requests exist (user submitted form)
     if request.method == 'POST' and 'username' in request.form and 'password' in request.form:
         # Create variables for easy access
@@ -46,13 +56,14 @@ def login():
         # Check if account exists using MySQL
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute(
-            'SELECT * FROM accounts WHERE username = %s AND password = %s', (username, password,))
+            'SELECT * FROM user WHERE username = %s AND password = %s', (username, password,))
         # Fetch one record and return result
         account = cursor.fetchone()
         # If account exists in accounts table in out database
         if account:
             if account['actived'] == 0:
                 msg = 'Account not actived'
+                return render_template('index.html', msg=msg)
             # Create session data, we can access this data in other routes
             session['loggedin'] = True
             session['id'] = account['id']
