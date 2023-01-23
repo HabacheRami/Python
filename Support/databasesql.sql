@@ -28,3 +28,7 @@ create table hospital.user (
 	role varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+/* add Sadmin */
+INSERT INTO user (`id`, `username`, `name`, `firstname`, `email`, `phone`, `date`, `actived`, `password`, `role`) VALUES
+('1', 'Sadmin', 'Super', 'Admin', 'direction@americanhospital.com', '0662793686', '2023-01-12', '1', 'Sadmin', 'SuperAdmin');
+
