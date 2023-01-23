@@ -12,7 +12,7 @@ app.secret_key = 'python3projet'
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = 'root'
-app.config['MYSQL_DB'] = 'MyDB'
+app.config['MYSQL_DB'] = 'hospital'
 
 # Intialize MySQL
 mysql = MySQL(app)
