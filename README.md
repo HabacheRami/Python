@@ -16,3 +16,9 @@ Outil interne pour renforcer les annuaires en place
 base de données.
 - Permettre les accès aux divers admins et corps de métier (pas les patients) via 
 une authentification controlée.
+
+## Flask
+
+Pour lancer flask :
+- $env:FLASK_APP = "main.py"
+- flask run
