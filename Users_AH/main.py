@@ -19,6 +19,8 @@ app.config['MYSQL_DB'] = 'hospital'
 mysql = MySQL(app)
 
 # http://localhost:5000/ - this will be the home page, only accessible for loggedin users
+
+
 @app.route('/')
 def home():
     # Check if user is loggedin
@@ -35,6 +37,8 @@ def home():
     return redirect(url_for('login'))
 
 # http://localhost:5000/login - the following will be our login page, which will use both GET and POST requests
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     msg = ''
@@ -71,6 +75,8 @@ def login():
     return render_template('index.html', msg=msg)
 
 # http://localhost:5000/register/doctor - this will be the register doctor page, we need to use both GET and POST requests
+
+
 @app.route('/register/doctor', methods=['GET', 'POST'])
 def register_doctor():
     # Output message if something goes wrong...
@@ -108,7 +114,7 @@ def register_doctor():
             else:
                 # Account doesnt exists and the form data is valid, now insert new account into accounts table
                 cursor.execute('INSERT INTO user VALUES (0, %s, %s, %s, %s, %s, %s, 0, %s, %s)',
-                            (username, name, firstname, email, phone, date, password, role,))
+                               (username, name, firstname, email, phone, date, password, role,))
                 mysql.connection.commit()
                 msg = 'You have successfully registered!'
         elif request.method == 'POST':
@@ -119,6 +125,8 @@ def register_doctor():
     return redirect(url_for('login'))
 
 # http://localhost:5000/register/patient - this will be the register patient page, we need to use both GET and POST requests
+
+
 @app.route('/register/patient', methods=['GET', 'POST'])
 def register_patient():
     # Output message if something goes wrong...
@@ -155,7 +163,7 @@ def register_patient():
             else:
                 # Account doesnt exists and the form data is valid, now insert new account into accounts table
                 cursor.execute('INSERT INTO patient VALUES (0, %s, %s, %s, %s, %s, %s, %s)',
-                            (username, file, name, firstname, description, drug, date,))
+                               (username, file, name, firstname, description, drug, date,))
                 mysql.connection.commit()
                 msg = 'You have successfully registered!'
         elif request.method == 'POST':
@@ -166,6 +174,8 @@ def register_patient():
     return redirect(url_for('login'))
 
 # http://localhost:5000/list- this will be the data list page
+
+
 @app.route('/list')
 def list():
     # Output message if something goes wrong...
@@ -180,6 +190,8 @@ def list():
     return redirect(url_for('login'))
 
 # http://localhost:5000/logout - this will be the logout page
+
+
 @app.route('/logout')
 def logout():
     # Remove session data, this will log the user out
@@ -190,6 +202,8 @@ def logout():
     return redirect(url_for('login'))
 
 # http://localhost:5000/profile - this will be the profile page, only accessible for loggedin users
+
+
 @app.route('/profile')
 def profile():
     # Check if user is loggedin
@@ -203,7 +217,9 @@ def profile():
     # User is not loggedin redirect to login page
     return redirect(url_for('login'))
 
-# http://localhost:5000/profile - this will be the profile page, only accessible for loggedin users
+# http://localhost:5000/<int:id>/delete - this will be delete the id post
+
+
 @app.route('/<int:id>/delete', methods=['POST'])
 def delete(id):
     # Check if user is loggedin
@@ -218,3 +234,49 @@ def delete(id):
             return redirect(url_for('list'))
     # User is not loggedin redirect to login page
     return redirect(url_for('login'))
+
+# http://localhost:5000/<int:id>/update - this will be update the id post
+
+
+@app.route('/<int:id>/update', methods=['GET', 'POST'])
+def update(id):
+    # Output message if something goes wrong...
+    msg = ''
+    # Check if user is loggedin
+    if 'loggedin' in session:
+        # We need all the account info for the user so we can display it on the profile page
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute('SELECT * FROM user WHERE id = %s', (id,))
+        doctor = cursor.fetchone()
+        if request.method == 'POST':
+            if doctor:
+                # delete before create with same id
+                cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+                cursor.execute('DELETE FROM user WHERE id = %s', (doctor['id'],))
+                mysql.connection.commit()
+
+                # Create variables for easy access
+                username = request.form['username']
+                name = request.form['name']
+                firstname = request.form['firstname']
+                phone = request.form['phone']
+                date = request.form['date']
+                role = 'Admin'
+                password = request.form['password']
+                email = request.form['email']
+                # Regex email
+                if not re.match(r'[^@]+@[^@]+\.[^@]+', email):
+                    msg = 'Invalid email address!'
+                # Regex name
+                elif not re.match(r'[A-Za-z0-9]+', username):
+                    msg = 'Username must contain only characters and numbers!'
+                # Check if variable not null
+                elif username is None or name is None or firstname is None or phone is None or date is None or password is None or email is None:
+                    msg = 'Please fill out the form!'
+                else:
+                    # Account doesnt exists and the form data is valid, now insert new account into accounts table
+                    cursor.execute('INSERT INTO user VALUES (%s, %s, %s, %s, %s, %s, %s, 0, %s, %s)',
+                                (id, username, name, firstname, email, phone, date, password, role,))
+                    mysql.connection.commit()
+                    return redirect(url_for('list'))
+    return render_template('update/doctor.html', doctor=doctor, msg=msg)

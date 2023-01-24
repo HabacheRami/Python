@@ -7,7 +7,7 @@
 <h2>List</h2>
 {% for doctor in doctors %}
 <div>
-    <h3> {{ doctor.id }} : {{ doctor.username }}</h3>
+    <h3> <i class="far fa-address-card"></i> {{ doctor.username }}</h3>
     <hr>
     <table style="border-collapse:collapse">
         <tr>
@@ -19,6 +19,7 @@
             <td> Actived </td>
             <td> Password </td>
             <td> Role </td>
+            <td> Update </td>
             <td> Delete </td>
         </tr>
         <tr>
@@ -30,8 +31,11 @@
             <td> {% if doctor.actived == 1 %} Yes {% else %} No {% endif %}</td>
             <td> {{ doctor.password }}</td>
             <td> {{ doctor.role }}</td>
+            <td><form method="" action="{{ url_for('update', id=doctor.id) }}">
+                <button type="submit"><i class="fas fa-pen" style="color: green;"></i></button>
+              </form></td>
             <td><form method="post" action="{{ url_for('delete', id=doctor.id) }}">
-                <button type="submit">Delete</button>
+                <button type="submit"><i class="fas fa-trash" style="color: red;"></i></button>
               </form></td>
         </tr>
     </table>
