@@ -19,8 +19,6 @@ app.config['MYSQL_DB'] = 'hospital'
 mysql = MySQL(app)
 
 # http://localhost:5000/ - this will be the home page, only accessible for loggedin users
-
-
 @app.route('/')
 def home():
     # Check if user is loggedin
@@ -37,8 +35,6 @@ def home():
     return redirect(url_for('login'))
 
 # http://localhost:5000/login - the following will be our login page, which will use both GET and POST requests
-
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     msg = ''
@@ -74,9 +70,7 @@ def login():
             msg = 'Incorrect username/password!'
     return render_template('index.html', msg=msg)
 
-# http://localhost:5000/register - this will be the registration page, we need to use both GET and POST requests
-
-
+# http://localhost:5000/register/doctor - this will be the register doctor page, we need to use both GET and POST requests
 @app.route('/register/doctor', methods=['GET', 'POST'])
 def register_doctor():
     # Output message if something goes wrong...
@@ -124,7 +118,7 @@ def register_doctor():
         return render_template('register/doctor.html', msg=msg)
     return redirect(url_for('login'))
 
-
+# http://localhost:5000/register/patient - this will be the register patient page, we need to use both GET and POST requests
 @app.route('/register/patient', methods=['GET', 'POST'])
 def register_patient():
     # Output message if something goes wrong...
@@ -141,7 +135,6 @@ def register_patient():
             description = request.form['description']
             drug = request.form['drug']
             date = request.form['date']
-            pprint(request)
             # Check if username exists
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
             cursor.execute(
@@ -172,8 +165,21 @@ def register_patient():
         return render_template('register/patient.html', msg=msg)
     return redirect(url_for('login'))
 
+# http://localhost:5000/list- this will be the data list page
+@app.route('/list')
+def list():
+    # Output message if something goes wrong...
+    msg = ''
+    # Check if user is loggedin
+    if 'loggedin' in session:
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute('SELECT * FROM user')
+        # Fetch one record and return result
+        doctors = cursor.fetchall()
+        return render_template('list.html', doctors=doctors, msg=msg)
+    return redirect(url_for('login'))
 
-# http://localhost:5000/python/logout - this will be the logout page
+# http://localhost:5000/logout - this will be the logout page
 @app.route('/logout')
 def logout():
     # Remove session data, this will log the user out
@@ -183,9 +189,7 @@ def logout():
     # Redirect to login page
     return redirect(url_for('login'))
 
-# http://localhost:5000/pythinlogin/profile - this will be the profile page, only accessible for loggedin users
-
-
+# http://localhost:5000/profile - this will be the profile page, only accessible for loggedin users
 @app.route('/profile')
 def profile():
     # Check if user is loggedin
@@ -196,5 +200,21 @@ def profile():
         account = cursor.fetchone()
         # Show the profile page with account info
         return render_template('profile.html', account=account)
+    # User is not loggedin redirect to login page
+    return redirect(url_for('login'))
+
+# http://localhost:5000/profile - this will be the profile page, only accessible for loggedin users
+@app.route('/<int:id>/delete', methods=['POST'])
+def delete(id):
+    # Check if user is loggedin
+    if 'loggedin' in session:
+        if request.method == 'POST':
+            pprint(id)
+            # We need all the account info for the user so we can display it on the profile page
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            cursor.execute('DELETE FROM user WHERE id = %s', (id,))
+            mysql.connection.commit()
+            # Show the profile page with account info
+            return redirect(url_for('list'))
     # User is not loggedin redirect to login page
     return redirect(url_for('login'))

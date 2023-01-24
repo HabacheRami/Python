@@ -1,0 +1,41 @@
+{% extends 'layout.html' %}
+
+{% block title %}List{% endblock %}
+
+{% block content %}
+
+<h2>List</h2>
+{% for doctor in doctors %}
+<div>
+    <h3> {{ doctor.id }} : {{ doctor.username }}</h3>
+    <hr>
+    <table style="border-collapse:collapse">
+        <tr>
+            <td> Nom </td>
+            <td> Prénom </td>
+            <td> Email </td>
+            <td> Phone </td>
+            <td> Date </td>
+            <td> Actived </td>
+            <td> Password </td>
+            <td> Role </td>
+            <td> Delete </td>
+        </tr>
+        <tr>
+            <td> {{ doctor.name }}</td>
+            <td> {{ doctor.firstname }}</td>
+            <td> {{ doctor.email }}</td>
+            <td> {{ doctor.phone }}</td>
+            <td> {{ doctor.date }}</td>
+            <td> {% if doctor.actived == 1 %} Yes {% else %} No {% endif %}</td>
+            <td> {{ doctor.password }}</td>
+            <td> {{ doctor.role }}</td>
+            <td><form method="post" action="{{ url_for('delete', id=doctor.id) }}">
+                <button type="submit">Delete</button>
+              </form></td>
+        </tr>
+    </table>
+</div>
+{% endfor %}
+
+{% endblock %}

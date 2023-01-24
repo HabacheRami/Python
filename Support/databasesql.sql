@@ -4,7 +4,7 @@ drop database if exists hospital;
 create database if not exists hospital;
 /* create table patient : username (login) dossier (password) set by doctor*/
 create table hospital.patient (
-	id int(11) primary key,
+	id int(11) primary key auto_increment,
     username varchar(100) unique not null,
     file int(11) not null,
     name varchar(100),
@@ -16,7 +16,7 @@ create table hospital.patient (
 
 /* create table user */
 create table hospital.user (
-	id int(11) primary key,
+	id int(11) primary key auto_increment,
     username varchar(100) unique not null,
 	name varchar(100),
     firstname varchar(100),
