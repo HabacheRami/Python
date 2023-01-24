@@ -192,14 +192,14 @@ def list():
 # http://localhost:5000/search- this will be the search data in a list page
 
 
-@app.route('/q', methods=['GET'])
+@app.route('/search', methods=['GET'])
 def search():
     # Output message if something goes wrong...
     msg = 'Not data found'
     # Check if user is loggedin
     if 'loggedin' in session:
         if request.method == "GET":
-            search = request.args.get("search")
+            search = request.args.get("q")
             search="%{}%".format(search)
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
             cursor.execute(
@@ -248,7 +248,6 @@ def delete(id):
     # Check if user is loggedin
     if 'loggedin' in session:
         if request.method == 'POST':
-            pprint(id)
             # We need all the account info for the user so we can display it on the profile page
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
             cursor.execute('DELETE FROM user WHERE id = %s', (id,))
