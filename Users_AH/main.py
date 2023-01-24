@@ -189,6 +189,29 @@ def list():
         return render_template('list.html', doctors=doctors, msg=msg)
     return redirect(url_for('login'))
 
+# http://localhost:5000/search- this will be the search data in a list page
+
+
+@app.route('/q', methods=['GET'])
+def search():
+    # Output message if something goes wrong...
+    msg = 'Not data found'
+    # Check if user is loggedin
+    if 'loggedin' in session:
+        if request.method == "GET":
+            search = request.args.get("search")
+            search="%{}%".format(search)
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            cursor.execute(
+                "SELECT * FROM user WHERE username LIKE %s OR name LIKE %s OR email LIKE %s OR email LIKE %s",
+                (search, search, search, search,))
+            # Fetch one record and return result
+            doctors = cursor.fetchall()
+            if doctors:
+                msg=''
+        return render_template('list.html', doctors=doctors, msg=msg)
+    return redirect(url_for('login'))
+
 # http://localhost:5000/logout - this will be the logout page
 
 
@@ -252,7 +275,8 @@ def update(id):
             if doctor:
                 # delete before create with same id
                 cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-                cursor.execute('DELETE FROM user WHERE id = %s', (doctor['id'],))
+                cursor.execute('DELETE FROM user WHERE id = %s',
+                               (doctor['id'],))
                 mysql.connection.commit()
 
                 # Create variables for easy access
@@ -276,7 +300,7 @@ def update(id):
                 else:
                     # Account doesnt exists and the form data is valid, now insert new account into accounts table
                     cursor.execute('INSERT INTO user VALUES (%s, %s, %s, %s, %s, %s, %s, 1, %s, %s)',
-                                (id, username, name, firstname, email, phone, date, password, role,))
+                                   (id, username, name, firstname, email, phone, date, password, role,))
                     mysql.connection.commit()
                     return redirect(url_for('list'))
     return render_template('update/doctor.html', doctor=doctor, msg=msg)

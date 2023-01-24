@@ -17,6 +17,10 @@
                 <a href="{{ url_for('register_doctor') }}"><i class="fas fa-user-plus"></i>Add User</a>
 				<a href="{{ url_for('profile') }}"><i class="fas fa-user-circle"></i>Profile</a>
 				<a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i>Logout</a>
+				<form method="GET" action="{{ url_for('search') }}">
+					<input type="text" placeholder="Search.." name="search">
+					<button type="submit" ><i class="fa fa-search"></i></button>
+				  </form>
 			</div>
 		</nav>
 		<div class="content">

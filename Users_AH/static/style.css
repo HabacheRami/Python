@@ -117,7 +117,7 @@ body {
 .navtop div {
     display: flex;
     margin: 0 auto;
-    width: 1000px;
+    width: 1100px;
     height: 100%;
 }
 
@@ -197,4 +197,26 @@ body.loggedin {
 .content>div p {
     padding: 5px;
     margin: 0 0 10px 0;
+}
+
+.navtop input[type=text] {
+    padding: 6px;
+    margin-top: 14px;
+    margin-left: 12px;
+    font-size: 15px;
+    border: none;
+}
+
+.navtop div button {
+    float: right;
+    padding: 6px 8px;
+    margin-top: 14px;
+    background: #c1c4c8;
+    font-size: 15px;
+    border: none;
+    cursor: pointer;
+}
+
+.navtop div button:hover {
+    background: #eaebed;
 }
