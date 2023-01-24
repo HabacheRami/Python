@@ -275,7 +275,7 @@ def update(id):
                     msg = 'Please fill out the form!'
                 else:
                     # Account doesnt exists and the form data is valid, now insert new account into accounts table
-                    cursor.execute('INSERT INTO user VALUES (%s, %s, %s, %s, %s, %s, %s, 0, %s, %s)',
+                    cursor.execute('INSERT INTO user VALUES (%s, %s, %s, %s, %s, %s, %s, 1, %s, %s)',
                                 (id, username, name, firstname, email, phone, date, password, role,))
                     mysql.connection.commit()
                     return redirect(url_for('list'))

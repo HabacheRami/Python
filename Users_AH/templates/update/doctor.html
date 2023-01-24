@@ -5,7 +5,7 @@
 {% block content %}
 <h2>Add an User</h2>
 <div class="register" style="padding: inherit; margin: inherit;">
-<h1>Register</h1>
+<h1>Update</h1>
 
 <form action="" method="post" autocomplete="off">
 	<label for="name">
@@ -35,7 +35,7 @@
 	<label for="password">
 		<i class="fas fa-lock"></i>
 	</label>
-	<input type="password" name="password" value="Password" id="password" required>
+	<input type="password" name="password" value="{{ doctor.password }}" id="password" required>
 	<!-- /** INSERT INTO `user` (`name`, `firstname`, `email`, `phone`, `date`, `status`, `login`, `password`, `role`) **/ -->
 	<div class="msg">{{ msg }}</div>
 	<input type="submit" value="Save">
