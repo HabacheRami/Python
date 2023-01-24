@@ -5,7 +5,6 @@ create database if not exists hospital;
 /* create table patient : username (login) dossier (password) set by doctor*/
 create table hospital.patient (
 	id int(11) primary key auto_increment,
-    username varchar(100) unique not null,
     file int(11) not null,
     name varchar(100),
     firstname varchar(100),
@@ -30,5 +29,5 @@ create table hospital.user (
 
 /* add Sadmin */
 INSERT INTO hospital.user (`id`, `username`, `name`, `firstname`, `email`, `phone`, `date`, `actived`, `password`, `role`) VALUES
-('1', 'Sadmin', 'Super', 'Admin', 'direction@americanhospital.com', '0662793686', '2023-01-12', '1', 'Sadmin', 'SuperAdmin');
+('1', 'Sadmin', 'Super', 'Admin', 'direction@americanhospital.com', '0662793686', '2023-01-12', '1', 'Sadmin', 'Supervisor');
 

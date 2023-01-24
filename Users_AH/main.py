@@ -3,6 +3,8 @@ from flask_mysqldb import MySQL
 import MySQLdb.cursors
 import re
 from pprint import pprint
+from datetime import date, timedelta, datetime
+import hashlib
 
 app = Flask(__name__)
 
@@ -25,6 +27,11 @@ mysql = MySQL(app)
 def home():
     # Check if user is loggedin
     if 'loggedin' in session:
+        today=date.today().strftime('%Y-%m-%d')
+        delta= datetime.now() + timedelta(days=30)
+        expire=delta.strftime('%Y-%m-%d')
+        pprint(today)
+        pprint(expire)
         # User is loggedin show them the home page
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         id = session['id']
@@ -59,6 +66,7 @@ def login():
         account = cursor.fetchone()
         # If account exists in accounts table in out database
         if account:
+            # Check if account actived
             if account['actived'] == 0:
                 msg = 'Account not actived'
                 return render_template('index.html', msg=msg)
@@ -86,12 +94,18 @@ def register_doctor():
         # Check if POST requests exist
         if request.method == 'POST':
             # Create variables for easy access
-            username = request.form['username']
             name = request.form['name']
             firstname = request.form['firstname']
+            # Create username with name and firstname
+            username = ...
             phone = request.form['phone']
-            date = request.form['date']
-            role = 'Admin'
+            # expired date
+            delta= datetime.now() + timedelta(days=30)
+            expire=delta.strftime('%Y-%m-%d')
+            date = expire
+            # 3 roles : Supervisor, Administrator, Doctor
+            role = request.form['role']
+            # Generate pwd et hash
             password = request.form['password']
             email = request.form['email']
             # Check if username exists
@@ -136,7 +150,6 @@ def register_patient():
         # Check if POST requests exist
         if request.method == 'POST':
             # Create variables for easy access
-            username = request.form['username']
             file = request.form['file']
             name = request.form['name']
             firstname = request.form['firstname']
@@ -146,24 +159,21 @@ def register_patient():
             # Check if username exists
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
             cursor.execute(
-                'SELECT * FROM patient WHERE username = %s', (username,))
+                'SELECT * FROM patient WHERE file = %s', (file,))
             account = cursor.fetchone()
             # If account exists show error and validation checks
             if account:
-                msg = 'Account already exists!'
-            # Regex name
-            elif not re.match(r'[A-Za-z0-9]+', username):
-                msg = 'Username must contain only characters and numbers!'
+                msg = 'Patient already exists!'
             # Regex file
             elif not re.match(r'[0-9]+', file):
                 msg = 'File must contain only numbers!'
             # Check form
-            elif username is None or file is None or name is None or firstname is None or description is None or drug is None or date is None:
+            elif file is None or name is None or firstname is None or description is None or drug is None or date is None:
                 msg = 'Please fill out the form!'
             else:
                 # Account doesnt exists and the form data is valid, now insert new account into accounts table
-                cursor.execute('INSERT INTO patient VALUES (0, %s, %s, %s, %s, %s, %s, %s)',
-                               (username, file, name, firstname, description, drug, date,))
+                cursor.execute('INSERT INTO patient VALUES (0, %s, %s, %s, %s, %s, %s)',
+                               (file, name, firstname, description, drug, date,))
                 mysql.connection.commit()
                 msg = 'You have successfully registered!'
         elif request.method == 'POST':
