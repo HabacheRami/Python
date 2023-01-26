@@ -196,7 +196,12 @@ def list():
         cursor.execute('SELECT * FROM user')
         # Fetch one record and return result
         doctors = cursor.fetchall()
-        return render_template('list.html', doctors=doctors, msg=msg)
+
+        cursor2 = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor2.execute('SELECT * FROM patient')
+        # Fetch one record and return result
+        patients = cursor2.fetchall()
+        return render_template('list.html', doctors=doctors, patients=patients, msg=msg)
     return redirect(url_for('login'))
 
 # http://localhost:5000/search- this will be the search data in a list page
@@ -213,13 +218,23 @@ def search():
             search="%{}%".format(search)
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
             cursor.execute(
-                "SELECT * FROM user WHERE username LIKE %s OR name LIKE %s OR email LIKE %s OR email LIKE %s",
-                (search, search, search, search,))
+                "SELECT * FROM user WHERE username LIKE %s OR firstname LIKE %s OR name LIKE %s OR email LIKE %s OR phone LIKE %s",
+                (search, search, search, search, search))
             # Fetch one record and return result
             doctors = cursor.fetchall()
             if doctors:
                 msg=''
-        return render_template('list.html', doctors=doctors, msg=msg)
+                return render_template('list.html', doctors=doctors, msg=msg)
+            else:
+                cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+                cursor.execute(
+                "SELECT * FROM patient WHERE firstname LIKE %s OR name LIKE %s",
+                (search, search))
+            # Fetch one record and return result
+            patients = cursor.fetchall()
+            if patients:
+                msg=''
+        return render_template('list.html', patients=patients, msg=msg)
     return redirect(url_for('login'))
 
 # http://localhost:5000/logout - this will be the logout page
@@ -270,8 +285,8 @@ def delete(id):
 # http://localhost:5000/<int:id>/update - this will be update the id post
 
 
-@app.route('/<int:id>/update', methods=['GET', 'POST'])
-def update(id):
+@app.route('/<int:id>/update_doctor', methods=['GET', 'POST'])
+def update_doctor(id):
     # Output message if something goes wrong...
     msg = ''
     # Check if user is loggedin
@@ -289,10 +304,10 @@ def update(id):
                 mysql.connection.commit()
 
                 # Create variables for easy access
-                username = request.form['username']
                 name = request.form['name']
                 firstname = request.form['firstname']
                 phone = request.form['phone']
+                username = firstname[0] + name
                 date = request.form['date']
                 role = 'Admin'
                 password = request.form['password']
@@ -300,9 +315,6 @@ def update(id):
                 # Regex email
                 if not re.match(r'[^@]+@[^@]+\.[^@]+', email):
                     msg = 'Invalid email address!'
-                # Regex name
-                elif not re.match(r'[A-Za-z0-9]+', username):
-                    msg = 'Username must contain only characters and numbers!'
                 # Check if variable not null
                 elif username is None or name is None or firstname is None or phone is None or date is None or password is None or email is None:
                     msg = 'Please fill out the form!'
@@ -313,3 +325,40 @@ def update(id):
                     mysql.connection.commit()
                     return redirect(url_for('list'))
     return render_template('update/doctor.html', doctor=doctor, msg=msg)
+
+
+@app.route('/<int:id>/update_patient', methods=['GET', 'POST'])
+def update_patient(id):
+    # Output message if something goes wrong...
+    msg = ''
+    # Check if user is loggedin
+    if 'loggedin' in session:
+        # We need all the account info for the user so we can display it on the profile page
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute('SELECT * FROM patient WHERE id = %s', (id,))
+        patient = cursor.fetchone()
+        if request.method == 'POST':
+            if patient:
+                # delete before create with same id
+                cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+                cursor.execute('DELETE FROM patient WHERE id = %s',
+                               (patient['id'],))
+                mysql.connection.commit()
+
+                # Create variables for easy access
+                name = request.form['name']
+                firstname = request.form['firstname']
+                file = request.form['file']
+                description = request.form['description']
+                drug = request.form['drug']
+                date = request.form['date']
+                # Check if variable not null
+                if name is None or firstname is None or file is None or date is None or drug is None or description is None:
+                    msg = 'Please fill out the form!'
+                else:
+                    # Account doesnt exists and the form data is valid, now insert new account into accounts table
+                    cursor.execute('INSERT INTO user VALUES (%s, %s, %s, %s, %s, %s, %s, 1, %s, %s)',
+                                   (id, description, name, firstname, file, drug, date,))
+                    mysql.connection.commit()
+                    return redirect(url_for('list'))
+    return render_template('update/patient.html', patient=patient, msg=msg)

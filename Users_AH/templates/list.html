@@ -5,10 +5,11 @@
 {% block content %}
 
 <h2>List</h2>
+<h3> <i class="far fa-address-card"></i> Doctors</h3>
 {% if doctors %}{% else %} <div class="msg">{{ msg }}</div>{% endif %}
 {% for doctor in doctors %}
 <div>
-    <h3> <i class="far fa-address-card"></i> {{ doctor.username }}</h3>
+    
     <hr>
     <table style="border-collapse:collapse">
         <tr>
@@ -32,7 +33,7 @@
             <td> {% if doctor.actived == 1 %} Yes {% else %} No {% endif %}</td>
             <td> {{ doctor.password }}</td>
             <td> {{ doctor.role }}</td>
-            <td><form method="" action="{{ url_for('update', id=doctor.id) }}">
+            <td><form method="" action="{{ url_for('update_doctor', id=doctor.id, name='doctor') }}">
                 <button type="submit"><i class="fas fa-pen" style="color: green;"></i></button>
               </form></td>
             <td><form method="post" action="{{ url_for('delete', id=doctor.id) }}">
@@ -43,4 +44,39 @@
 </div>
 {% endfor %}
 
+<h3> <i class="far fa-address-card"></i> Patients</h3>
+{% if patients %}{% else %} <div class="msg">{{ msg }}</div>{% endif %}
+{% for patient in patients %}
+<div>
+ 
+    <hr>
+    <table style="border-collapse:collapse">
+        <tr>
+            <td> Nom </td>
+            <td> Prénom </td>
+            <td> Date </td>
+            <td> Description </td>
+            <td> Drug </td>
+            <td> File </td>
+            <td> Update </td>
+            <td> Delete </td>
+        </tr>
+        <tr>
+            <td> {{ patient.name }}</td>
+            <td> {{ patient.firstname }}</td>
+            <td> {{ patient.date }}</td>
+            <td> {{ patient.description }}</td>
+            <td> {{ patient.drug }}</td>
+            <td> {{ patient.file }}</td>
+            
+            <td><form method="" action="{{ url_for('update_patient', id=patient.id, name='patient') }}">
+                <button type="submit"><i class="fas fa-pen" style="color: green;"></i></button>
+              </form></td>
+            <td><form method="post" action="{{ url_for('delete', id=patient.id) }}">
+                <button type="submit"><i class="fas fa-trash" style="color: red;"></i></button>
+              </form></td>
+        </tr>
+    </table>
+</div>
+{% endfor %}
 {% endblock %}

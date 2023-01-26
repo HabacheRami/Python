@@ -28,6 +28,12 @@
 	</label>
 	<input type="text" id="phone" name="phone" placeholder="phone" pattern="[0-9]{10}" required>
 	<!-- creation selection role -->
+	<select name="role">
+		<optgroup label="Role">
+		<option value="Admin">Administrator</option>
+		<option value="Doctor">Doctor</option>
+	</optgroup>
+	</select>
 	<!-- /** INSERT INTO `user` (`name`, `firstname`, `email`, `phone`, `date`, `status`, `login`, `password`, `role`) **/ -->
 	<div class="msg">{{ msg }}</div>
 	<input type="submit" value="Save">
