@@ -5,11 +5,11 @@
 {% block content %}
 
 <h2>List</h2>
-<h3> <i class="far fa-address-card"></i> Doctors</h3>
+<h3>Doctors</h3>
 {% if doctors %}{% else %} <div class="msg">{{ msg }}</div>{% endif %}
 {% for doctor in doctors %}
 <div>
-    
+    <h3> <i class="far fa-address-card"></i> {{doctor.username}}</h3>
     <hr>
     <table style="border-collapse:collapse">
         <tr>
@@ -44,11 +44,11 @@
 </div>
 {% endfor %}
 
-<h3> <i class="far fa-address-card"></i> Patients</h3>
+<h3>Patients</h3>
 {% if patients %}{% else %} <div class="msg">{{ msg }}</div>{% endif %}
 {% for patient in patients %}
 <div>
- 
+    <h3> <i class="far fa-address-card"></i> {{patient.name}}</h3>
     <hr>
     <table style="border-collapse:collapse">
         <tr>

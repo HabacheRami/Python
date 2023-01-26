@@ -211,6 +211,7 @@ def list():
 def search():
     # Output message if something goes wrong...
     msg = 'Not data found'
+    msg1 = 'Not data found'
     # Check if user is loggedin
     if 'loggedin' in session:
         if request.method == "GET":
@@ -222,19 +223,17 @@ def search():
                 (search, search, search, search, search))
             # Fetch one record and return result
             doctors = cursor.fetchall()
-            if doctors:
-                msg=''
-                return render_template('list.html', doctors=doctors, msg=msg)
-            else:
-                cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-                cursor.execute(
-                "SELECT * FROM patient WHERE firstname LIKE %s OR name LIKE %s",
-                (search, search))
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            cursor.execute(
+            "SELECT * FROM patient WHERE firstname LIKE %s OR name LIKE %s",
+            (search, search))
             # Fetch one record and return result
             patients = cursor.fetchall()
-            if patients:
+            if doctors :
                 msg=''
-        return render_template('list.html', patients=patients, msg=msg)
+            if patients :
+                msg1=''
+        return render_template('list.html', doctors=doctors, patients=patients, msg=msg, msg1=msg1)
     return redirect(url_for('login'))
 
 # http://localhost:5000/logout - this will be the logout page
@@ -346,9 +345,9 @@ def update_patient(id):
                 mysql.connection.commit()
 
                 # Create variables for easy access
+                file = request.form['file']
                 name = request.form['name']
                 firstname = request.form['firstname']
-                file = request.form['file']
                 description = request.form['description']
                 drug = request.form['drug']
                 date = request.form['date']
