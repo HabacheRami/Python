@@ -418,28 +418,27 @@ def update_pwd():
 
 # function random password
 def generate_pwd():
-    alphanumeric = string.ascii_letters+string.digits
-    pwd = ""
+    alphanumeric = string.ascii_letters+string.digits # concatenation of usable letters
+    pwd = "" # Initialisation variable
     for i in range(12):
-        pwd = pwd + alphanumeric[random.randint(0,len(alphanumeric)-1)]
+        pwd = pwd + alphanumeric[random.randint(0,len(alphanumeric)-1)] # Random letter generation loop
     return pwd
 
 # function hash
 def hash_pwd(pwd):
-    salt = "Python"
-    pwd_crypte = hashlib.md5(pwd.encode()+salt.encode()).hexdigest()
+    salt = "Python" #key hash
+    pwd_crypte = hashlib.md5(pwd.encode()+salt.encode()).hexdigest() # encode passord
     return pwd_crypte
 
-
+# Function email
 def connection_mail(mail, username, pwd):
-    message = MIMEMultipart()
+    message = MIMEMultipart()   #parse information email
     message['From'] = "testmaileur111@gmail.com"
     message['To'] = mail
     message['Subject'] = 'Activation compte American Hopital'
-    message.attach(MIMEText("Bonjour, votre login est " + username +  " et votre mot de passe provisoire est  : " + pwd + ". \n Cordialement, American Hostipal", 'html'))
-    text = message.as_string()
-    mailserver = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-    mailserver.login('testmaileur111@gmail.com','ownjdlhlgviqchho')
-    mailserver.sendmail('testmaileur111@gmail.com', mail,  text)
-    pprint("mail envoyé")
-    mailserver.quit()
+    message.attach(MIMEText("Bonjour, votre login est " + username +  " et votre mot de passe provisoire est  : " + pwd + ". \n Cordialement, American Hostipal", 'html')) # attachment body
+    text = message.as_string() # text binding
+    mailserver = smtplib.SMTP_SSL('smtp.gmail.com', 465) # connection SMTP Gmail
+    mailserver.login('testmaileur111@gmail.com','ownjdlhlgviqchho') # connection account Gmail
+    mailserver.sendmail('testmaileur111@gmail.com', mail,  text) # Send mail
+    mailserver.quit() # close connection
