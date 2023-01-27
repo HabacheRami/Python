@@ -7,6 +7,9 @@ from datetime import date, timedelta, datetime
 import random
 import string
 import hashlib
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 app = Flask(__name__)
 
@@ -30,9 +33,9 @@ def home():
     # Check if user is loggedin
     if 'loggedin' in session:
         # Check datetime now with expired time account
-        today = date.today().strftime('%Y-%m-%d')
-        if session['date'] <= today:
-            return redirect(url_for('update_pwd'))
+#         today = date.today().strftime('%Y-%m-%d')
+#        if session['date'] <= today:
+#            return redirect(url_for('update_pwd')) """
         # User is loggedin show them the home page
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         id = session['id']
@@ -97,10 +100,6 @@ def register_doctor():
     msg = ''
     # Check if user is loggedin
     if 'loggedin' in session:
-        # Check datetime now with expired time account
-        today = date.today().strftime('%Y-%m-%d')
-        if session['date'] <= today :
-            return redirect(url_for('update_pwd'))
         # Check if POST requests exist
         if request.method == 'POST':
             # Create variables for easy access
@@ -114,7 +113,8 @@ def register_doctor():
             # 3 roles : Supervisor, Administrator, Doctor
             role = request.form['role']
             # Generate pwd et hash
-            password = request.form['password']
+            password = generate_pwd()
+            encrypt = hash_pwd(password)
             email = request.form['email']
             # Check if username exists
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
@@ -139,9 +139,11 @@ def register_doctor():
             else:
                 # Account doesnt exists and the form data is valid, now insert new account into accounts table
                 cursor.execute('INSERT INTO user VALUES (0, %s, %s, %s, %s, %s, %s, 0, %s, %s)',
-                               (username, name, firstname, email, phone, today, password, role,))
+                               (username, name, firstname, email, phone, today, encrypt, role,))
                 mysql.connection.commit()
+                connection_mail(email, username,password)
                 msg = 'You have successfully registered!'
+
         elif request.method == 'POST':
             # Form is empty... (no POST data)
             msg = 'Please fill out the form!'
@@ -158,10 +160,6 @@ def register_patient():
     msg = ''
     # Check if user is loggedin
     if 'loggedin' in session:
-        # Check if expired password
-        today = date.today().strftime('%Y-%m-%d')
-        if session['date'] <= today :
-            return redirect(url_for('update_pwd'))
         # Check if POST requests exist
         if request.method == 'POST':
             # Create variables for easy access
@@ -207,10 +205,6 @@ def list():
     msg = ''
     # Check if user is loggedin
     if 'loggedin' in session:
-        # Check if expired password
-        today = date.today().strftime('%Y-%m-%d')
-        if session['date'] <= today :
-            return redirect(url_for('update_pwd'))
         # Select data from user
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute('SELECT * FROM user')
@@ -234,10 +228,6 @@ def search():
     msg1 = 'Not data found'
     # Check if user is loggedin
     if 'loggedin' in session:
-        # Check if expired password
-        today = date.today().strftime('%Y-%m-%d')
-        if session['date'] <= today :
-            return redirect(url_for('update_pwd'))
         if request.method == "GET":
             search = request.args.get("q")
             search = "%{}%".format(search)
@@ -280,10 +270,6 @@ def logout():
 def profile():
     # Check if user is loggedin
     if 'loggedin' in session:
-        # Check if expired password
-        today = date.today().strftime('%Y-%m-%d')
-        if session['date'] <= today :
-            return redirect(url_for('update_pwd'))
         # We need all the account info for the user so we can display it on the profile page
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute('SELECT * FROM user WHERE id = %s', (session['id'],))
@@ -300,10 +286,6 @@ def profile():
 def delete(id):
     # Check if user is loggedin
     if 'loggedin' in session:
-        # Check if expired password
-        today = date.today().strftime('%Y-%m-%d')
-        if session['date'] <= today :
-            return redirect(url_for('update_pwd'))
         if request.method == 'POST':
             # We need all the account info for the user so we can display it on the profile page
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
@@ -323,10 +305,6 @@ def update_doctor(id):
     msg = ''
     # Check if user is loggedin
     if 'loggedin' in session:
-        # Check if expired password
-        today = date.today().strftime('%Y-%m-%d')
-        if session['date'] <= today :
-            return redirect(url_for('update_pwd'))
         # We need all the account info for the user so we can display it on the profile page
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute('SELECT * FROM user WHERE id = %s', (id,))
@@ -346,6 +324,7 @@ def update_doctor(id):
                 expire = request.form['date']
                 role = 'Admin'
                 password = request.form['password']
+                encrytp=hash_pwd(password)
                 email = request.form['email']
                 # Regex email
                 if not re.match(r'[^@]+@[^@]+\.[^@]+', email):
@@ -356,7 +335,7 @@ def update_doctor(id):
                 else:
                     # Account doesnt exists and the form data is valid, now insert new account into accounts table
                     cursor.execute('INSERT INTO user VALUES (%s, %s, %s, %s, %s, %s, %s, 1, %s, %s)',
-                                   (id, username, name, firstname, email, phone, expire, password, role,))
+                                   (id, username, name, firstname, email, phone, expire, encrytp, role,))
                     mysql.connection.commit()
                     return redirect(url_for('list'))
     return render_template('update/doctor.html', doctor=doctor, msg=msg)
@@ -370,10 +349,6 @@ def update_patient(id):
     msg = ''
     # Check if user is loggedin
     if 'loggedin' in session:
-        # Check if expired password
-        today = date.today().strftime('%Y-%m-%d')
-        if session['date'] <= today :
-            return redirect(url_for('update_pwd'))
         # We need all the account info for the user so we can display it on the profile page
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute('SELECT * FROM patient WHERE id = %s', (id,))
@@ -425,6 +400,7 @@ def update_pwd():
                 # create variables for easy access
                 old = request.form['old']
                 password = request.form['password']
+                encrypt=hash_pwd(password)
                 if old != account['password']:
                     msg = 'Incorrect password !'
                 # Check if variable not null or password is the same
@@ -433,7 +409,7 @@ def update_pwd():
                 else:
                     # now insert an update column into user table
                     cursor.execute('UPDATE user SET date = %s, password = %s',
-                                   (expire, password,))
+                                   (expire, encrypt,))
                     mysql.connection.commit()
                     # Update session :
                     session['date'] = expire
@@ -444,11 +420,26 @@ def update_pwd():
 def generate_pwd():
     alphanumeric = string.ascii_letters+string.digits
     pwd = ""
-    for i in range(10):
-        pwd = pwd + alphanumeric[random.randint(0,len(alphanumeric))]
+    for i in range(12):
+        pwd = pwd + alphanumeric[random.randint(0,len(alphanumeric)-1)]
     return pwd
 
 # function hash
 def hash_pwd(pwd):
-    pwd_crypte = hashlib.md5(pwd.encode()).hexdigest()
+    salt = "Python"
+    pwd_crypte = hashlib.md5(pwd.encode()+salt.encode()).hexdigest()
     return pwd_crypte
+
+
+def connection_mail(mail, username, pwd):
+    message = MIMEMultipart()
+    message['From'] = "testmaileur111@gmail.com"
+    message['To'] = mail
+    message['Subject'] = 'Activation compte American Hopital'
+    message.attach(MIMEText("Bonjour, votre login est " + username +  " et votre mot de passe provisoire est  : " + pwd + ". \n Cordialement, American Hostipal", 'html'))
+    text = message.as_string()
+    mailserver = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+    mailserver.login('testmaileur111@gmail.com','ownjdlhlgviqchho')
+    mailserver.sendmail('testmaileur111@gmail.com', mail,  text)
+    pprint("mail envoyé")
+    mailserver.quit()
