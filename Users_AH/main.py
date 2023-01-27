@@ -4,6 +4,8 @@ import MySQLdb.cursors
 import re
 from pprint import pprint
 from datetime import date, timedelta, datetime
+import random
+import string
 import hashlib
 
 app = Flask(__name__)
@@ -73,7 +75,6 @@ def login():
             session['date'] = account['date'].strftime('%Y-%m-%d')
             # Check datetime now with expired time account
             today = date.today().strftime('%Y-%m-%d')
-            pprint(session['date'])
             if session['date'] <= today :
                 return redirect(url_for('update_pwd'))
             # Check if account actived
@@ -106,7 +107,7 @@ def register_doctor():
             name = request.form['name']
             firstname = request.form['firstname']
             # Create username with name and firstname
-            username = ...
+            username = firstname[0] + name
             phone = request.form['phone']
             # expired date
             today = date.today().strftime('%Y-%m-%d')
@@ -265,6 +266,7 @@ def search():
 @app.route('/logout')
 def logout():
     # Remove session data, this will log the user out
+    session.pop('date', None)
     session.pop('loggedin', None)
     session.pop('id', None)
     session.pop('username', None)
@@ -408,10 +410,8 @@ def update_patient(id):
 def update_pwd():
     # Output message if something goes wrong...
     msg = ''
-    # Check if user is loggedin and password expired
-            # Check if expired password
-    today = date.today().strftime('%Y-%m-%d')
-    if 'loggedin' in session and session['date'] <= today:
+    # Check if user is loggedin
+    if 'loggedin' in session:
         # We need all the account info for the user so we can display it on the profile page
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         id = session['id']
@@ -423,10 +423,9 @@ def update_pwd():
                 delta = datetime.now() + timedelta(days=30)
                 expire = delta.strftime('%Y-%m-%d')
                 # create variables for easy access
-                pprint(expire)
                 old = request.form['old']
                 password = request.form['password']
-                if old == account['password']:
+                if old != account['password']:
                     msg = 'Incorrect password !'
                 # Check if variable not null or password is the same
                 elif password is None or password == account['password']:
@@ -434,9 +433,22 @@ def update_pwd():
                 else:
                     # now insert an update column into user table
                     cursor.execute('UPDATE user SET date = %s, password = %s',
-                                   (delta, password,))
+                                   (expire, password,))
                     mysql.connection.commit()
                     # Update session :
-                    session['date'] = delta
+                    session['date'] = expire
                     return redirect(url_for('home'))
     return render_template('update/password.html', msg=msg)
+
+# function random password
+def generate_pwd():
+    alphanumeric = string.ascii_letters+string.digits
+    pwd = ""
+    for i in range(10):
+        pwd = pwd + alphanumeric[random.randint(0,len(alphanumeric))]
+    return pwd
+
+# function hash
+def hash_pwd(pwd):
+    pwd_crypte = hashlib.md5(pwd.encode()).hexdigest()
+    return pwd_crypte
