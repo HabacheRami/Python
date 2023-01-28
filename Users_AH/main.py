@@ -33,9 +33,9 @@ def home():
     # Check if user is loggedin
     if 'loggedin' in session:
         # Check datetime now with expired time account
-#         today = date.today().strftime('%Y-%m-%d')
-#        if session['date'] <= today:
-#            return redirect(url_for('update_pwd')) """
+        today = date.today().strftime('%Y-%m-%d')
+        if session['date'] <= today:
+           return redirect(url_for('update_pwd'))
         # User is loggedin show them the home page
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         id = session['id']
@@ -60,12 +60,13 @@ def login():
         if username is None:
             msg = 'Please enter an username'
         password = request.form['password']
+        encrypt = hash_pwd(password)
         if password is None:
             msg = 'Please enter an password'
         # Check if account exists using MySQL
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute(
-            'SELECT * FROM user WHERE username = %s AND password = %s', (username, password,))
+            'SELECT * FROM user WHERE username = %s AND password = %s', (username, encrypt,))
         # Fetch one record and return result
         account = cursor.fetchone()
         # If account exists in accounts table in out database
@@ -83,7 +84,7 @@ def login():
             # Check if account actived
             if account['actived'] == 0:
                 msg = 'Account not actived'
-                return render_template('index.html', msg=msg)
+                return redirect(url_for('update_pwd'))
             # Redirect to home page
             return redirect(url_for('home'))
         else:
@@ -100,55 +101,87 @@ def register_doctor():
     msg = ''
     # Check if user is loggedin
     if 'loggedin' in session:
-        # Check if POST requests exist
-        if request.method == 'POST':
-            # Create variables for easy access
-            name = request.form['name']
-            firstname = request.form['firstname']
-            # Create username with name and firstname
-            username = firstname[0] + name
-            phone = request.form['phone']
-            # expired date
+        if session['role'] != 'Doctor' : 
+            # Check datetime now with expired time account
             today = date.today().strftime('%Y-%m-%d')
-            # 3 roles : Supervisor, Administrator, Doctor
-            role = request.form['role']
-            # Generate pwd et hash
-            password = generate_pwd()
-            encrypt = hash_pwd(password)
-            email = request.form['email']
-            # Check if username exists
-            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-            cursor.execute(
-                'SELECT * FROM user WHERE username = %s', (username,))
-            account = cursor.fetchone()
-            # If account exists show error and validation checks
-            if account:
-                msg = 'Account already exists!'
-            # Regex email
-            elif not re.match(r'[^@]+@[^@]+\.[^@]+', email):
-                msg = 'Invalid email address!'
-            # Regex name
-            elif not re.match(r'[A-Za-z]+', name):
-                msg = 'Name must contain only characters !'
-            # Regex fistname
-            elif not re.match(r'[A-Za-z]+', firstname):
-                msg = 'Firstname must contain only characters !'
-            # Check if variable not null
-            elif username is None or name is None or firstname is None or phone is None or today is None or password is None or email is None:
-                msg = 'Please fill out the form!'
-            else:
-                # Account doesnt exists and the form data is valid, now insert new account into accounts table
-                cursor.execute('INSERT INTO user VALUES (0, %s, %s, %s, %s, %s, %s, 0, %s, %s)',
-                               (username, name, firstname, email, phone, today, encrypt, role,))
-                mysql.connection.commit()
-                connection_mail(email, username,password)
-                msg = 'You have successfully registered!'
+            if session['date'] <= today:
+                return redirect(url_for('update_pwd'))
+            # Check if POST requests exist
+            if request.method == 'POST':
+                # Create variables for easy access
+                name = request.form['name']
+                firstname = request.form['firstname']
+                # Create username with name and firstname
+                dat = request.form['date']
+                username = firstname[0] + name.lower()
+                phone = request.form['phone']
+                # expired date
+                today = date.today().strftime('%Y-%m-%d')
+                # 3 roles : Supervisor, Administrator, Doctor
+                role = request.form['role']
+                # Generate pwd et hash
+                password = generate_pwd()
+                encrypt = hash_pwd(password)
+                email = request.form['email']
+                # Check if username exists
+                cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+                cursor.execute(
+                    'SELECT * FROM user WHERE name=%s AND firstname=%s AND date=%s OR username=%s OR email=%s', (name, firstname, dat, username, email,))
+                account = cursor.fetchone()
+                # Check admin create
+                curs = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+                curs.execute(
+                    'SELECT COUNT(role) FROM `user` WHERE role = "Admin"')
+                count = curs.fetchone()
+                # If account exists show error and validation checks
+                if account['name']==name and account['firstname']==firstname and account['date']==dat:
+                    msg = 'Account already exists!'
+                # Regex email
+                elif account['email']==email:
+                    msg = 'Email already exists!'
+                elif not re.match(r'[^@]+@[^@]+\.[^@]+', email):
+                    msg = 'Invalid email address!'
+                # Regex name
+                elif not re.match(r'[A-Za-z]+', name):
+                    msg = 'Name must contain only characters !'
+                # Regex fistname
+                elif not re.match(r'[A-Za-z]+', firstname):
+                    msg = 'Firstname must contain only characters !'
+                # Check if variable not null
+                elif username is None or name is None or firstname is None or phone is None or password is None or email is None or dat is None:
+                    msg = 'Please fill out the form!'
+                # Check if 4 admins created
+                elif count > 4:
+                    msg = 'Admin rate has been reached !'
+                else:
+                    # If user have the same 1 lettre of firstname and same name
+                    if account['username']==username:
+                        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+                        y=username+"%"
+                        cursor.execute(
+                            'SELECT username FROM user WHERE username Like %s ORDER BY username DESC LIMIT 1', (y,))
+                        account = cursor.fetchone()
+                        use=account['username']
+                        usez = use[-1]
+                        if ord(usez) not in range(48,57):
+                            i=1
+                            username = username + str(i)
+                        else:
+                            username = use[:-1] + str((int(usez) + 1))
+                                                                        
+                    # Account doesnt exists and the form data is valid, now insert new account into accounts table
+                    cursor.execute('INSERT INTO user VALUES (0, %s, %s, %s, %s, %s, %s, 0, %s, %s, %s)',
+                                (username, name, firstname, email, phone, dat, encrypt, role, today,))
+                    mysql.connection.commit()
+                    connection_mail(email, username, password)
+                    msg = 'You have successfully registered!'
 
-        elif request.method == 'POST':
-            # Form is empty... (no POST data)
-            msg = 'Please fill out the form!'
-        # Show registration form with message (if any)
-        return render_template('register/doctor.html', msg=msg)
+            elif request.method == 'POST':
+                # Form is empty... (no POST data)
+                msg = 'Please fill out the form!'
+            # Show registration form with message (if any)
+            dat=date.today().strftime('%Y-%m-%d')
+            return render_template('register/doctor.html', msg=msg, dat=dat)
     return redirect(url_for('login'))
 
 # http://localhost:5000/register/patient - this will be the register patient page, we need to use both GET and POST requests
@@ -160,6 +193,10 @@ def register_patient():
     msg = ''
     # Check if user is loggedin
     if 'loggedin' in session:
+        # Check datetime now with expired time account
+        today = date.today().strftime('%Y-%m-%d')
+        if session['date'] <= today:
+            return redirect(url_for('update_pwd'))
         # Check if POST requests exist
         if request.method == 'POST':
             # Create variables for easy access
@@ -168,11 +205,11 @@ def register_patient():
             firstname = request.form['firstname']
             description = request.form['description']
             drug = request.form['drug']
-            expire = request.form['date']
+            dat = request.form['date']
             # Check if username exists
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
             cursor.execute(
-                'SELECT * FROM patient WHERE file = %s', (file,))
+                'SELECT * FROM patient WHERE name = %s AND firstname = %s', (name, firstname,))
             account = cursor.fetchone()
             # If account exists show error and validation checks
             if account:
@@ -181,19 +218,20 @@ def register_patient():
             elif not re.match(r'[0-9]+', file):
                 msg = 'File must contain only numbers!'
             # Check form
-            elif file is None or name is None or firstname is None or description is None or drug is None or expire is None:
+            elif file is None or name is None or firstname is None or description is None or drug is None or dat is None:
                 msg = 'Please fill out the form!'
             else:
                 # Account doesnt exists and the form data is valid, now insert new account into accounts table
                 cursor.execute('INSERT INTO patient VALUES (0, %s, %s, %s, %s, %s, %s)',
-                               (file, name, firstname, description, drug, expire,))
+                               (file, name, firstname, description, drug, dat,))
                 mysql.connection.commit()
                 msg = 'You have successfully registered!'
         elif request.method == 'POST':
             # Form is empty... (no POST data)
             msg = 'Please fill out the form!'
         # Show registration form with message (if any)
-        return render_template('register/patient.html', msg=msg)
+        dat=date.today().strftime('%Y-%m-%d')
+        return render_template('register/patient.html', msg=msg, dat=dat)
     return redirect(url_for('login'))
 
 # http://localhost:5000/list- this will be the data list page
@@ -205,9 +243,13 @@ def list():
     msg = ''
     # Check if user is loggedin
     if 'loggedin' in session:
+        # Check datetime now with expired time account
+        today = date.today().strftime('%Y-%m-%d')
+        if session['date'] <= today:
+            return redirect(url_for('update_pwd'))
         # Select data from user
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('SELECT * FROM user')
+        cursor.execute('SELECT * FROM user where role<>"Supervisor"')
         # Fetch one record and return result
         doctors = cursor.fetchall()
 
@@ -228,6 +270,10 @@ def search():
     msg1 = 'Not data found'
     # Check if user is loggedin
     if 'loggedin' in session:
+         # Check datetime now with expired time account
+        today = date.today().strftime('%Y-%m-%d')
+        if session['date'] <= today:
+            return redirect(url_for('update_pwd'))       
         if request.method == "GET":
             search = request.args.get("q")
             search = "%{}%".format(search)
@@ -270,6 +316,10 @@ def logout():
 def profile():
     # Check if user is loggedin
     if 'loggedin' in session:
+        # Check datetime now with expired time account
+        today = date.today().strftime('%Y-%m-%d')
+        if session['date'] <= today:
+            return redirect(url_for('update_pwd'))        
         # We need all the account info for the user so we can display it on the profile page
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute('SELECT * FROM user WHERE id = %s', (session['id'],))
@@ -282,101 +332,89 @@ def profile():
 # http://localhost:5000/<int:id>/delete - this will be delete the id post
 
 
-@app.route('/<int:id>/delete', methods=['POST'])
-def delete(id):
+@app.route('/<int:id>/<string:type>/delete', methods=['GET','POST'])
+def delete(id, type):
     # Check if user is loggedin
     if 'loggedin' in session:
         if request.method == 'POST':
             # We need all the account info for the user so we can display it on the profile page
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-            cursor.execute('DELETE FROM user WHERE id = %s', (id,))
+            if type=='user':
+                cursor.execute('DELETE FROM user WHERE id = %s', (id,))
+            else:
+                cursor.execute('DELETE FROM patient WHERE id = %s', (id,))
             mysql.connection.commit()
             # Show the profile page with account info
             return redirect(url_for('list'))
     # User is not loggedin redirect to login page
     return redirect(url_for('login'))
 
-# http://localhost:5000/<int:id>/update_doctor - this will be update the id doctor's
+# http://localhost:5000/<int:id>/update - this will be update the id and the type (user or patient)
 
 
-@app.route('/<int:id>/update_doctor', methods=['GET', 'POST'])
-def update_doctor(id):
+@app.route('/<int:id>/<type>/update', methods=['GET', 'POST'])
+def update(id,type):
     # Output message if something goes wrong...
     msg = ''
     # Check if user is loggedin
     if 'loggedin' in session:
+         # Check datetime now with expired time account
+        today = date.today().strftime('%Y-%m-%d')
+        if session['date'] <= today:
+            return redirect(url_for('update_pwd'))       
         # We need all the account info for the user so we can display it on the profile page
-        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('SELECT * FROM user WHERE id = %s', (id,))
-        doctor = cursor.fetchone()
-        if request.method == 'POST':
-            if doctor:
-                # delete before create with same id
-                cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-                cursor.execute('DELETE FROM user WHERE id = %s',
-                               (doctor['id'],))
-                mysql.connection.commit()
-                # Create variables for easy access
-                name = request.form['name']
-                firstname = request.form['firstname']
-                phone = request.form['phone']
-                username = firstname[0] + name
-                expire = request.form['date']
-                role = 'Admin'
-                password = request.form['password']
-                encrytp=hash_pwd(password)
-                email = request.form['email']
-                # Regex email
-                if not re.match(r'[^@]+@[^@]+\.[^@]+', email):
-                    msg = 'Invalid email address!'
-                # Check if variable not null
-                elif username is None or name is None or firstname is None or phone is None or expire is None or password is None or email is None:
-                    msg = 'Please fill out the form!'
-                else:
-                    # Account doesnt exists and the form data is valid, now insert new account into accounts table
-                    cursor.execute('INSERT INTO user VALUES (%s, %s, %s, %s, %s, %s, %s, 1, %s, %s)',
-                                   (id, username, name, firstname, email, phone, expire, encrytp, role,))
-                    mysql.connection.commit()
-                    return redirect(url_for('list'))
-    return render_template('update/doctor.html', doctor=doctor, msg=msg)
-
-# http://localhost:5000/<int:id>/update_patient - this will be update the id patient's
-
-
-@app.route('/<int:id>/update_patient', methods=['GET', 'POST'])
-def update_patient(id):
-    # Output message if something goes wrong...
-    msg = ''
-    # Check if user is loggedin
-    if 'loggedin' in session:
-        # We need all the account info for the user so we can display it on the profile page
-        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('SELECT * FROM patient WHERE id = %s', (id,))
-        patient = cursor.fetchone()
-        if request.method == 'POST':
-            if patient:
-                # delete before create with same id
-                cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-                cursor.execute('DELETE FROM patient WHERE id = %s',
-                               (patient['id'],))
-                mysql.connection.commit()
+        if type=='user':
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            cursor.execute('SELECT * FROM user WHERE id = %s', (id,))
+            doctor = cursor.fetchone()
+            if request.method == 'POST':
+                if doctor:
+                    # Create variables for easy access
+                    phone = request.form['phone']
+                    password = request.form['password']
+                    encrytp=hash_pwd(password)
+                    if encrytp!=doctor['password']:
+                        delta = datetime.now() + timedelta(days=30)
+                        expire = delta.strftime('%Y-%m-%d')
+                    else : 
+                        expire = doctor['expire']
+                    email = request.form['email']
+                    # Regex email
+                    if not re.match(r'[^@]+@[^@]+\.[^@]+', email):
+                        msg = 'Invalid email address!'
+                    # Check if variable not null
+                    elif phone is None or expire is None or password is None or email is None:
+                        msg = 'Please fill out the form!'
+                    else:
+                        # Account doesnt exists and the form data is valid, now insert new account into accounts table
+                        cursor.execute('UPDATE user SET email=%s, phone=%s, expire=%s, password=%s',
+                                    (email, phone, expire, encrytp,))
+                        mysql.connection.commit()
+                        return redirect(url_for('list'))
+        else :
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            cursor.execute('SELECT * FROM patient WHERE id = %s', (id,))
+            patient = cursor.fetchone()
+            if request.method == 'POST':
                 # Create variables for easy access
                 file = request.form['file']
                 name = request.form['name']
                 firstname = request.form['firstname']
                 description = request.form['description']
                 drug = request.form['drug']
-                expire = request.form['date']
                 # Check if variable not null
-                if name is None or firstname is None or file is None or expire is None or drug is None or description is None:
-                    msg = 'Please fill out the form!'
+                if name is None or firstname is None or file is None or drug is None or description is None:
+                     msg = 'Please fill out the form!'
                 else:
                     # now insert update into patient table
-                    cursor.execute('INSERT INTO user VALUES (%s, %s, %s, %s, %s, %s, %s, 1, %s, %s)',
-                                   (id, description, name, firstname, file, drug, expire,))
+                    cursor.execute('UPDATE patient SET name=%s, firstname=%s, description=%s, file=%s, drug=%s',
+                                (name, firstname, description, file, drug,))
                     mysql.connection.commit()
                     return redirect(url_for('list'))
-    return render_template('update/patient.html', patient=patient, msg=msg)
+    if type=='user':
+        return render_template('update/doctor.html', doctor=doctor, msg=msg)
+    else:
+        return render_template('update/patient.html', patient=patient, msg=msg)
 
 # http://localhost:5000/<int:id>/change_pwd - this will be update the id user's password
 
@@ -386,10 +424,11 @@ def update_pwd():
     # Output message if something goes wrong...
     msg = ''
     # Check if user is loggedin
-    if 'loggedin' in session:
+    if 'loggedin' in session:    
         # We need all the account info for the user so we can display it on the profile page
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         id = session['id']
+        pprint(id)
         cursor.execute('SELECT * FROM user WHERE id = %s', (id,))
         account = cursor.fetchone()
         if request.method == 'POST':
@@ -399,6 +438,7 @@ def update_pwd():
                 expire = delta.strftime('%Y-%m-%d')
                 # create variables for easy access
                 old = request.form['old']
+                old = hash_pwd(old)
                 password = request.form['password']
                 encrypt=hash_pwd(password)
                 if old != account['password']:
@@ -408,7 +448,7 @@ def update_pwd():
                     msg = 'Use a new password to change !'
                 else:
                     # now insert an update column into user table
-                    cursor.execute('UPDATE user SET date = %s, password = %s',
+                    cursor.execute('UPDATE user SET date = %s, password = %s, actived = 1',
                                    (expire, encrypt,))
                     mysql.connection.commit()
                     # Update session :

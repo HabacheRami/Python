@@ -19,7 +19,6 @@
             <td> Phone </td>
             <td> Date </td>
             <td> Actived </td>
-            <td> Password </td>
             <td> Role </td>
             <td> Update </td>
             <td> Delete </td>
@@ -31,12 +30,11 @@
             <td> {{ doctor.phone }}</td>
             <td> {{ doctor.date }}</td>
             <td> {% if doctor.actived == 1 %} Yes {% else %} No {% endif %}</td>
-            <td> {{ doctor.password }}</td>
             <td> {{ doctor.role }}</td>
-            <td><form method="" action="{{ url_for('update_doctor', id=doctor.id, name='doctor') }}">
+            <td><form method="" action="{{ url_for('update', id=doctor.id, type='user') }}">
                 <button type="submit"><i class="fas fa-pen" style="color: green;"></i></button>
               </form></td>
-            <td><form method="post" action="{{ url_for('delete', id=doctor.id) }}">
+            <td><form method="post" action="{{ url_for('delete', id=doctor.id, type='user') }}">
                 <button type="submit"><i class="fas fa-trash" style="color: red;"></i></button>
               </form></td>
         </tr>
@@ -69,10 +67,10 @@
             <td> {{ patient.drug }}</td>
             <td> {{ patient.file }}</td>
             
-            <td><form method="" action="{{ url_for('update_patient', id=patient.id, name='patient') }}">
+            <td><form method="" action="{{ url_for('update', id=patient.id, type='patient') }}">
                 <button type="submit"><i class="fas fa-pen" style="color: green;"></i></button>
               </form></td>
-            <td><form method="post" action="{{ url_for('delete', id=patient.id) }}">
+            <td><form method="post" action="{{ url_for('delete', id=patient.id, type='patient') }}">
                 <button type="submit"><i class="fas fa-trash" style="color: red;"></i></button>
               </form></td>
         </tr>

@@ -10,7 +10,8 @@ create table hospital.patient (
     firstname varchar(100),
     description text,
     drug text,
-    date date
+    date date,
+	expire date
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /* create table user */
