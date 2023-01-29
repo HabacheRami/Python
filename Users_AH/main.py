@@ -88,7 +88,8 @@ def login():
                 # Check datetime now with expired time account
                 today = date.today().strftime('%Y-%m-%d')
                 if session['date'] <= today :
-                    return redirect(url_for('update_pwd'))       
+                    return redirect(url_for('update_pwd'))
+                return redirect(url_for('home'))       
         else:
             # Account doesnt exist or username/password incorrect          
             msg = 'Incorrect username !'
@@ -318,10 +319,7 @@ def search():
 @app.route('/logout')
 def logout():
     # Remove session data, this will log the user out
-    session.pop('date', None)
-    session.pop('loggedin', None)
-    session.pop('id', None)
-    session.pop('username', None)
+    session.clear()
     # Redirect to login page
     return redirect(url_for('login'))
 
@@ -448,7 +446,7 @@ def update_pwd():
                 old = request.form['old']
                 old = hash_pwd(old)
                 password = request.form['password']
-                encrypt=hash_pwd(password)
+                encrypt = hash_pwd(password)
                 if old != account['password']:
                     msg = 'Incorrect password !'
                 # Check if variable not null or password is the same
@@ -456,7 +454,7 @@ def update_pwd():
                     msg = 'Use a new password to change !'
                 else:
                     # now insert an update column into user table
-                    cursor.execute('UPDATE user SET date = %s, password = %s, actived = 1 WHERE id=%s',
+                    cursor.execute('UPDATE user SET expire = %s, password = %s, actived = 1 WHERE id=%s',
                                    (expire, encrypt,session['id'],))
                     mysql.connection.commit()
                     # Update session :
