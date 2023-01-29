@@ -18,11 +18,18 @@
             <td> Email </td>
             <td> Phone </td>
             <td> Date </td>
-            <td> Actived </td>
+            <td> Active </td>
             <td> Role </td>
-            {% if session.role != 'Doctor'%}
-            <td> Update </td>
-            <td> Delete </td>
+            {% if session['role'] != 'Doctor' %} 
+                {% if doctor.role != "Supervisor" %}
+                    <td> Update </td>
+                    <td> Delete </td>
+                    {% if doctor.actived==0 %}
+                        <td> Enable </td>
+                    {% else %}
+                        <td> Disable </td>
+                    {% endif %}
+                {% endif %}   
             {% endif %}
         </tr>
         <tr>
@@ -33,13 +40,25 @@
             <td> {{ doctor.date }}</td>
             <td> {% if doctor.actived == 1 %} Yes {% else %} No {% endif %}</td>
             <td> {{ doctor.role }}</td>
-            {% if session.role != 'Doctor'%}
-            <td><form method="" action="{{ url_for('update', id=doctor.id, type='user') }}">
-                <button type="submit"><i class="fas fa-pen" style="color: green;"></i></button>
-              </form></td>
-            <td><form method="post" action="{{ url_for('delete', id=doctor.id, type='user') }}">
-                <button type="submit"><i class="fas fa-trash" style="color: red;"></i></button>
-              </form></td>
+            {% if session['role'] != 'Doctor' %}
+                {% if doctor.role != "Supervisor" %}
+                    <td><form method="" action="{{ url_for('update', id=doctor.id , type='user') }}">
+                        <button type="submit"><i class="fas fa-pen" style="color: green;"></i></button>
+                    </form></td>
+                    <td><form method="post" action="{{ url_for('delete', id=doctor.id) }}">
+                        <input type="hidden" name="type" value="user">
+                        <button type="submit"><i class="fas fa-trash" style="color: red;"></i></button>
+                    </form></td>
+                    <td><form method="post" action="{{ url_for('active', id=doctor.id) }}">
+                        {% if doctor.actived==0 %}
+                            <input type="hidden" name="enable" value="1">
+                            <button type="submit"><i class="fas fa-eye" style="color: green;"></i></button>
+                        {% else %}
+                            <input type="hidden" name="enable" value="0">
+                            <button type="submit"><i class="fas fa-eye-slash" style="color: red;"></i></button>
+                        {% endif %}
+                    </form></td>
+                {% endif %}
             {% endif %}
         </tr>
     </table>
@@ -50,7 +69,7 @@
 {% if patients %}{% else %} <div class="msg">{{ msg }}</div>{% endif %}
 {% for patient in patients %}
 <div>
-    <h3> <i class="far fa-address-card"></i> {{patient.name}}</h3>
+    <h3> <i class="far fa-address-card"></i> {{patient.name}} {{patient.firstname}}</h3>
     <hr>
     <table style="border-collapse:collapse">
         <tr>
@@ -71,10 +90,12 @@
             <td> {{ patient.drug }}</td>
             <td> {{ patient.file }}</td>
             
-            <td><form method="" action="{{ url_for('update', id=patient.id, type='patient') }}">
+            <td><form method="" action="{{ url_for('update', id=patient.id , type='user') }}">
+                <input type="hidden" name="type" value="patient">
                 <button type="submit"><i class="fas fa-pen" style="color: green;"></i></button>
               </form></td>
-            <td><form method="post" action="{{ url_for('delete', id=patient.id, type='patient') }}">
+            <td><form method="post" action="{{ url_for('delete', id=patient.id) }}">
+                <input type="hidden" name="type" value="patient">
                 <button type="submit"><i class="fas fa-trash" style="color: red;"></i></button>
               </form></td>
         </tr>

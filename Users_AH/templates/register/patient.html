@@ -7,7 +7,9 @@
 <div class="register" style="padding: inherit; margin: inherit;">
 <h1>Register</h1>
 <div class="links">
+	{% if session['role'] != 'Doctor' %}
 	<a href="{{ url_for('register_doctor') }}">Doctor</a>
+	{% endif %}
 	<a href="{{ url_for('register_patient') }}" class="active">Patient</a>
 </div>
 <form action="{{ url_for('register_patient') }}" method="post" autocomplete="off">

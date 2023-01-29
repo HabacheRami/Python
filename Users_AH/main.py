@@ -71,22 +71,20 @@ def login():
         account = cursor.fetchone()
         # If account exists in accounts table in out database
         if account:
-            # Create session data, we can access this data in other routes
-            session['loggedin'] = True
-            session['id'] = account['id']
-            session['username'] = account['username']
-            session['role'] = account['role']
-            session['date'] = account['date'].strftime('%Y-%m-%d')
-            # Check datetime now with expired time account
-            today = date.today().strftime('%Y-%m-%d')
-            if session['date'] <= today :
-                return redirect(url_for('update_pwd'))
             # Check if account actived
             if account['actived'] == 0:
-                msg = 'Account not actived'
-                return redirect(url_for('update_pwd'))
-            # Redirect to home page
-            return redirect(url_for('home'))
+                msg = 'Account not actived ! Contact your Administrator'
+            else :
+                # Create session data, we can access this data in other routes
+                session['loggedin'] = True
+                session['id'] = account['id']
+                session['username'] = account['username']
+                session['role'] = account['role']
+                session['date'] = account['expire'].strftime('%Y-%m-%d')
+                # Check datetime now with expired time account
+                today = date.today().strftime('%Y-%m-%d')
+                if session['date'] <= today :
+                    return redirect(url_for('update_pwd'))
         else:
             # Account doesnt exist or username/password incorrect
             msg = 'Incorrect username/password!'
@@ -154,7 +152,7 @@ def register_doctor():
                             username = username + str(i)
                         else:
                             username = use[:-1] + str((int(usez) + 1))
-                elif not re.match(r'[^@]+@[^@]+\.[^@]+', email):
+                if not re.match(r'[^@]+@[^@]+\.[^@]+', email):
                     msg = 'Invalid email address!'
                 # Regex name
                 elif not re.match(r'[A-Za-z]+', name):
@@ -235,8 +233,6 @@ def register_patient():
     return redirect(url_for('login'))
 
 # http://localhost:5000/list- this will be the data list page
-
-
 @app.route('/list')
 def list():
     # Output message if something goes wrong...
@@ -260,9 +256,23 @@ def list():
         return render_template('list.html', doctors=doctors, patients=patients, msg=msg)
     return redirect(url_for('login'))
 
+@app.route('/<int:id>/active', methods=['GET','POST'])
+def active(id):
+    # Output message if something goes wrong...
+    msg = ''
+    # Check if user is loggedin
+    if 'loggedin' in session:
+        if request.method == 'POST':
+            # Active / Désactive
+            active=request.form['enable']
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)    
+            cursor.execute('UPDATE user SET actived=%s where id=%s',
+                                        (active, id,))
+            mysql.connection.commit()
+            return redirect(url_for('list'))
+    return redirect(url_for('login'))
+
 # http://localhost:5000/search- this will be the search data in a list page
-
-
 @app.route('/search', methods=['GET'])
 def search():
     # Output message if something goes wrong...
@@ -297,8 +307,6 @@ def search():
     return redirect(url_for('login'))
 
 # http://localhost:5000/logout - this will be the logout page
-
-
 @app.route('/logout')
 def logout():
     # Remove session data, this will log the user out
@@ -310,8 +318,6 @@ def logout():
     return redirect(url_for('login'))
 
 # http://localhost:5000/profile - this will be the profile page, only accessible for loggedin users
-
-
 @app.route('/profile')
 def profile():
     # Check if user is loggedin
@@ -330,15 +336,14 @@ def profile():
     return redirect(url_for('login'))
 
 # http://localhost:5000/<int:id>/delete - this will be delete the id post
-
-
-@app.route('/<int:id>/<string:type>/delete', methods=['GET','POST'])
-def delete(id, type):
+@app.route('/<int:id>/delete', methods=['GET','POST'])
+def delete(id):
     # Check if user is loggedin
     if 'loggedin' in session:
         if request.method == 'POST':
             # We need all the account info for the user so we can display it on the profile page
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            type = request.form['type']
             if type=='user':
                 cursor.execute('DELETE FROM user WHERE id = %s', (id,))
             else:
@@ -349,9 +354,8 @@ def delete(id, type):
     # User is not loggedin redirect to login page
     return redirect(url_for('login'))
 
+
 # http://localhost:5000/<int:id>/update - this will be update the id and the type (user or patient)
-
-
 @app.route('/<int:id>/<type>/update', methods=['GET', 'POST'])
 def update(id,type):
     # Output message if something goes wrong...
@@ -387,8 +391,8 @@ def update(id,type):
                         msg = 'Please fill out the form!'
                     else:
                         # Account doesnt exists and the form data is valid, now insert new account into accounts table
-                        cursor.execute('UPDATE user SET email=%s, phone=%s, expire=%s, password=%s',
-                                    (email, phone, expire, encrytp,))
+                        cursor.execute('UPDATE user SET email=%s, phone=%s, expire=%s, password=%s where id=%s',
+                                    (email, phone, expire, encrytp, id,))
                         mysql.connection.commit()
                         return redirect(url_for('list'))
         else :
@@ -407,8 +411,8 @@ def update(id,type):
                      msg = 'Please fill out the form!'
                 else:
                     # now insert update into patient table
-                    cursor.execute('UPDATE patient SET name=%s, firstname=%s, description=%s, file=%s, drug=%s',
-                                (name, firstname, description, file, drug,))
+                    cursor.execute('UPDATE patient SET name=%s, firstname=%s, description=%s, file=%s, drug=%s where id=%s',
+                                (name, firstname, description, file, drug, id, ))
                     mysql.connection.commit()
                     return redirect(url_for('list'))
     if type=='user':
@@ -417,8 +421,6 @@ def update(id,type):
         return render_template('update/patient.html', patient=patient, msg=msg)
 
 # http://localhost:5000/<int:id>/change_pwd - this will be update the id user's password
-
-
 @app.route('/change_pwd', methods=['GET', 'POST'])
 def update_pwd():
     # Output message if something goes wrong...
@@ -428,7 +430,6 @@ def update_pwd():
         # We need all the account info for the user so we can display it on the profile page
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         id = session['id']
-        pprint(id)
         cursor.execute('SELECT * FROM user WHERE id = %s', (id,))
         account = cursor.fetchone()
         if request.method == 'POST':
@@ -448,8 +449,8 @@ def update_pwd():
                     msg = 'Use a new password to change !'
                 else:
                     # now insert an update column into user table
-                    cursor.execute('UPDATE user SET date = %s, password = %s, actived = 1',
-                                   (expire, encrypt,))
+                    cursor.execute('UPDATE user SET date = %s, password = %s, actived = 1 WHERE id=%s',
+                                   (expire, encrypt,session['id'],))
                     mysql.connection.commit()
                     # Update session :
                     session['date'] = expire
@@ -476,7 +477,7 @@ def connection_mail(mail, username, pwd):
     message['From'] = "testmaileur111@gmail.com"
     message['To'] = mail
     message['Subject'] = 'Activation compte American Hopital'
-    message.attach(MIMEText("Bonjour, votre login est " + username +  " et votre mot de passe provisoire est  : " + pwd + ". \n Cordialement, American Hostipal", 'html')) # attachment body
+    message.attach(MIMEText("Bonjour, votre login est " + username +  " et votre mot de passe provisoire est  : " + pwd + ". \n Attention, il expire à 00h00 \nCordialement, American Hostipal", 'html')) # attachment body
     text = message.as_string() # text binding
     mailserver = smtplib.SMTP_SSL('smtp.gmail.com', 465) # connection SMTP Gmail
     mailserver.login('testmaileur111@gmail.com','ownjdlhlgviqchho') # connection account Gmail
