@@ -25,9 +25,10 @@ app.config['MYSQL_DB'] = 'hospital'
 # Intialize MySQL
 mysql = MySQL(app)
 
+# Variable Global for tries login 
+tries=3
+
 # http://localhost:5000/ - this will be the home page, only accessible for loggedin users
-
-
 @app.route('/')
 def home():
     # Check if user is loggedin
@@ -48,11 +49,10 @@ def home():
     return redirect(url_for('login'))
 
 # http://localhost:5000/login - the following will be our login page, which will use both GET and POST requests
-
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     msg = ''
+    global tries
     # Check if "username" and "password" POST requests exist (user submitted form)
     if request.method == 'POST' and 'username' in request.form and 'password' in request.form:
         # Create variables for easy access
@@ -66,7 +66,7 @@ def login():
         # Check if account exists using MySQL
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute(
-            'SELECT * FROM user WHERE username = %s AND password = %s', (username, encrypt,))
+            'SELECT * FROM user WHERE username = %s', (username,))
         # Fetch one record and return result
         account = cursor.fetchone()
         # If account exists in accounts table in out database
@@ -74,6 +74,10 @@ def login():
             # Check if account actived
             if account['actived'] == 0:
                 msg = 'Account not actived ! Contact your Administrator'
+            elif username==account['username'] and encrypt != account['password']:
+                tries=int(tries)-1
+                es=" try !" if tries==1 else " tries !"
+                msg = 'Incorrect password ! \n You have more than ' + str(tries) + es
             else :
                 # Create session data, we can access this data in other routes
                 session['loggedin'] = True
@@ -84,15 +88,21 @@ def login():
                 # Check datetime now with expired time account
                 today = date.today().strftime('%Y-%m-%d')
                 if session['date'] <= today :
-                    return redirect(url_for('update_pwd'))
+                    return redirect(url_for('update_pwd'))       
         else:
-            # Account doesnt exist or username/password incorrect
-            msg = 'Incorrect username/password!'
+            # Account doesnt exist or username/password incorrect          
+            msg = 'Incorrect username !'
+        # If he have doing 3 tries
+        if tries==0:
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            cursor.execute('UPDATE user SET actived=0 where username=%s', (account['username'],))
+            # Fetch one record and return result
+            mysql.connection.commit()
+            msg = 'You have disable your account ! Contact your Administrator'
+            tries=3
     return render_template('index.html', msg=msg)
 
 # http://localhost:5000/register/doctor - this will be the register doctor page, we need to use both GET and POST requests
-
-
 @app.route('/register/doctor', methods=['GET', 'POST'])
 def register_doctor():
     # Output message if something goes wrong...
@@ -183,8 +193,6 @@ def register_doctor():
     return redirect(url_for('login'))
 
 # http://localhost:5000/register/patient - this will be the register patient page, we need to use both GET and POST requests
-
-
 @app.route('/register/patient', methods=['GET', 'POST'])
 def register_patient():
     # Output message if something goes wrong...
@@ -353,7 +361,6 @@ def delete(id):
             return redirect(url_for('list'))
     # User is not loggedin redirect to login page
     return redirect(url_for('login'))
-
 
 # http://localhost:5000/<int:id>/update - this will be update the id and the type (user or patient)
 @app.route('/<int:id>/<type>/update', methods=['GET', 'POST'])
