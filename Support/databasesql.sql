@@ -29,6 +29,7 @@ create table hospital.user (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /* add Sadmin */
+/* password clear : Sadmin */
 INSERT INTO hospital.user (`id`, `username`, `name`, `firstname`, `email`, `phone`, `date`, `actived`, `password`, `role`) VALUES
-('1', 'Sadmin', 'Super', 'Admin', 'direction@americanhospital.com', '0662793686', '2023-01-12', '1', 'Sadmin', 'Supervisor');
+('1', 'Sadmin', 'Super', 'Admin', 'direction@americanhospital.com', '0662793686', '2023-01-12', '1', '8d9d244845a60033e2290d9a6146fde0', 'Supervisor');
 

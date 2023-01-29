@@ -20,8 +20,10 @@
             <td> Date </td>
             <td> Actived </td>
             <td> Role </td>
+            {% if session.role != 'Doctor'%}
             <td> Update </td>
             <td> Delete </td>
+            {% endif %}
         </tr>
         <tr>
             <td> {{ doctor.name }}</td>
@@ -31,12 +33,14 @@
             <td> {{ doctor.date }}</td>
             <td> {% if doctor.actived == 1 %} Yes {% else %} No {% endif %}</td>
             <td> {{ doctor.role }}</td>
+            {% if session.role != 'Doctor'%}
             <td><form method="" action="{{ url_for('update', id=doctor.id, type='user') }}">
                 <button type="submit"><i class="fas fa-pen" style="color: green;"></i></button>
               </form></td>
             <td><form method="post" action="{{ url_for('delete', id=doctor.id, type='user') }}">
                 <button type="submit"><i class="fas fa-trash" style="color: red;"></i></button>
               </form></td>
+            {% endif %}
         </tr>
     </table>
 </div>

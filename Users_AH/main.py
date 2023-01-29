@@ -133,29 +133,15 @@ def register_doctor():
                 curs.execute(
                     'SELECT COUNT(role) FROM `user` WHERE role = "Admin"')
                 count = curs.fetchone()
-                # If account exists show error and validation checks
-                if account['name']==name and account['firstname']==firstname and account['date']==dat:
-                    msg = 'Account already exists!'
-                # Regex email
-                elif account['email']==email:
-                    msg = 'Email already exists!'
-                elif not re.match(r'[^@]+@[^@]+\.[^@]+', email):
-                    msg = 'Invalid email address!'
-                # Regex name
-                elif not re.match(r'[A-Za-z]+', name):
-                    msg = 'Name must contain only characters !'
-                # Regex fistname
-                elif not re.match(r'[A-Za-z]+', firstname):
-                    msg = 'Firstname must contain only characters !'
-                # Check if variable not null
-                elif username is None or name is None or firstname is None or phone is None or password is None or email is None or dat is None:
-                    msg = 'Please fill out the form!'
-                # Check if 4 admins created
-                elif count > 4:
-                    msg = 'Admin rate has been reached !'
-                else:
+                if account:
+                    # If account exists show error and validation checks
+                    if account['name']==name and account['firstname']==firstname and account['date']==dat:
+                        msg = 'Account already exists!'
+                    # Regex email
+                    elif account['email']==email:
+                        msg = 'Email already exists!'
                     # If user have the same 1 lettre of firstname and same name
-                    if account['username']==username:
+                    elif account['username']==username:
                         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
                         y=username+"%"
                         cursor.execute(
@@ -168,7 +154,21 @@ def register_doctor():
                             username = username + str(i)
                         else:
                             username = use[:-1] + str((int(usez) + 1))
-                                                                        
+                elif not re.match(r'[^@]+@[^@]+\.[^@]+', email):
+                    msg = 'Invalid email address!'
+                # Regex name
+                elif not re.match(r'[A-Za-z]+', name):
+                    msg = 'Name must contain only characters !'
+                # Regex fistname
+                elif not re.match(r'[A-Za-z]+', firstname):
+                    msg = 'Firstname must contain only characters !'
+                # Check if variable not null
+                elif username is None or name is None or firstname is None or phone is None or password is None or email is None or dat is None:
+                    msg = 'Please fill out the form!'
+                # Check if 4 admins created
+                elif count['COUNT(role)'] > 4:
+                    msg = 'Admin rate has been reached !'
+                else:          
                     # Account doesnt exists and the form data is valid, now insert new account into accounts table
                     cursor.execute('INSERT INTO user VALUES (0, %s, %s, %s, %s, %s, %s, 0, %s, %s, %s)',
                                 (username, name, firstname, email, phone, dat, encrypt, role, today,))
@@ -249,7 +249,7 @@ def list():
             return redirect(url_for('update_pwd'))
         # Select data from user
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('SELECT * FROM user where role<>"Supervisor"')
+        cursor.execute('SELECT * FROM user')
         # Fetch one record and return result
         doctors = cursor.fetchall()
 
