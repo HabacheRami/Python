@@ -40,5 +40,10 @@
             <td>{{ account['expire'] }}</td>
         </tr>
     </table>
+    <br>
+
+    <td><form method="" action="{{ url_for('update', id=session['id'] , type='user') }}">
+        <center><button type="submit">Modify</button></center>
+    </form></td>
 </div>
 {% endblock %}

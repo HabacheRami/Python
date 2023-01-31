@@ -110,7 +110,7 @@ def register_doctor():
     msg = ''
     # Check if user is loggedin
     if 'loggedin' in session:
-        if session['role'] != 'Doctor' : 
+        if session['role'] == 'Admin' or session['role'] == 'Supervisor': 
             # Check datetime now with expired time account
             today = date.today().strftime('%Y-%m-%d')
             if session['date'] <= today:
@@ -200,52 +200,56 @@ def register_patient():
     msg = ''
     # Check if user is loggedin
     if 'loggedin' in session:
-        # Check datetime now with expired time account
-        today = date.today().strftime('%Y-%m-%d')
-        if session['date'] <= today:
-            return redirect(url_for('update_pwd'))
-        # Check if POST requests exist
-        if request.method == 'POST':
-            # Create variables for easy access
-            file = request.form['file']
-            name = request.form['name']
-            firstname = request.form['firstname']
-            description = request.form['description']
-            drug = request.form['drug']
-            dat = request.form['date']
-            # Check if username exists
-            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-            cursor.execute(
-                'SELECT * FROM patient WHERE name = %s AND firstname = %s', (name, firstname,))
-            account = cursor.fetchone()
-            # If account exists show error and validation checks
-            if account:
-                msg = 'Patient already exists!'
-            # Regex file
-            elif not re.match(r'[0-9]+', file):
-                msg = 'File must contain only numbers!'
-            # Check form
-            elif file is None or name is None or firstname is None or description is None or drug is None or dat is None:
+        if session['role'] != 'Admin' or session['role'] != 'Supervisor': 
+            # Check datetime now with expired time account
+            today = date.today().strftime('%Y-%m-%d')
+            if session['date'] <= today:
+                return redirect(url_for('update_pwd'))
+            # Check if POST requests exist
+            if request.method == 'POST':
+                # Create variables for easy access
+                name = request.form['name']
+                firstname = request.form['firstname']
+                dat = request.form['date']
+                email = request.form['email']
+                phone = request.form['phone']
+                address = request.form['address']
+                city = request.form['city']
+                postal = request.form['postal']
+                blood = request.form['blood']
+                doctor = session['id']
+
+                # Check if username exists
+                cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+                cursor.execute(
+                    'SELECT * FROM patient WHERE name = %s AND firstname = %s AND date = %s', (name, firstname, dat,))
+                account = cursor.fetchone()
+                # If account exists show error and validation checks
+                if account:
+                    msg = 'Patient already exists!'
+                # Check form
+                elif email is None or city is None or postal is None or address is None or blood is None or doctor is None or name is None or firstname is None or phone is None or address is None or dat is None:
+                    msg = 'Please fill out the form!'
+                else:
+                    # Account doesnt exists and the form data is valid, now insert new account into accounts table
+                    cursor.execute('INSERT INTO patient VALUES (0, %s, %s, %s, %s, %s, %s ,%s, %s, %s, %s)',
+                                (name, firstname, dat, email, phone, address, city, postal, blood, doctor,))
+                    mysql.connection.commit()
+                    msg = 'You have successfully registered!'
+            elif request.method == 'POST':
+                # Form is empty... (no POST data)
                 msg = 'Please fill out the form!'
-            else:
-                # Account doesnt exists and the form data is valid, now insert new account into accounts table
-                cursor.execute('INSERT INTO patient VALUES (0, %s, %s, %s, %s, %s, %s)',
-                               (file, name, firstname, description, drug, dat,))
-                mysql.connection.commit()
-                msg = 'You have successfully registered!'
-        elif request.method == 'POST':
-            # Form is empty... (no POST data)
-            msg = 'Please fill out the form!'
-        # Show registration form with message (if any)
-        dat=date.today().strftime('%Y-%m-%d')
-        return render_template('register/patient.html', msg=msg, dat=dat)
+            # Show registration form with message (if any)
+            dat=date.today().strftime('%Y-%m-%d')
+            return render_template('register/patient.html', msg=msg, dat=dat)
     return redirect(url_for('login'))
 
 # http://localhost:5000/list- this will be the data list page
 @app.route('/list')
 def list():
     # Output message if something goes wrong...
-    msg = ''
+    msg = 'Not data found'
+    msgp = 'Not data found'
     # Check if user is loggedin
     if 'loggedin' in session:
         # Check datetime now with expired time account
@@ -257,14 +261,74 @@ def list():
         cursor.execute('SELECT * FROM user')
         # Fetch one record and return result
         doctors = cursor.fetchall()
-
+        if doctors:
+            msg = ''
         cursor2 = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor2.execute('SELECT * FROM patient')
         # Fetch one record and return result
         patients = cursor2.fetchall()
-        return render_template('list.html', doctors=doctors, patients=patients, msg=msg)
+        if patients:
+            msgp = ''
+        return render_template('list.html', doctors=doctors, patients=patients, msgp=msgp, msg=msg)
     return redirect(url_for('login'))
 
+# http://localhost:5000/<it:id>/register/report- this will be create a new report
+@app.route('/register/report', methods=['GET', 'POST'])
+def new_report():
+    # Check if user is loggedin
+    if 'loggedin' in session:
+        if session['role'] != 'Admin' or session['role'] != 'Supervisor': 
+            # Check datetime now with expired time account
+            today = date.today().strftime('%Y-%m-%d')
+            if session['date'] <= today:
+                return redirect(url_for('update_pwd'))
+            # Check if POST requests exist
+            if request.method == 'POST':
+                # Create variables for easy access
+                description = request.form['description']
+                drug = request.form['drug']
+                id = request.form['id']
+            # Select data from user
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            cursor.execute('INSERT INTO report VALUES (0, %s, %s, %s, %s)', (description, drug, today, id,))
+            mysql.connection.commit()
+            
+            # Fetch one record and return result
+            return redirect(url_for('report', id=id))
+    return redirect(url_for('login'))
+
+@app.route('/<int:id>/tmp', methods=['GET', 'POST'])
+def tmp(id):
+    return render_template('register/report.html' , id=id)
+
+# http://localhost:5000/<it:id>/report- this will be list the report of an patient
+@app.route('/<int:id>/report', methods=['GET', 'POST'])
+def report(id):
+    # Output message if something goes wrong...
+    msg = 'Not data found'
+    # Check if user is loggedin
+    if 'loggedin' in session:
+        # Check datetime now with expired time account
+        today = date.today().strftime('%Y-%m-%d')
+        if session['date'] <= today:
+            return redirect(url_for('update_pwd'))
+        # Select data from user
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute('SELECT * FROM patient where id = %s', (id,))
+        # Fetch one record and return result
+        patient = cursor.fetchone()
+
+        # Select all reports 
+        cursor1 = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor1.execute('SELECT * FROM report where userid = %s'  , (id,))
+        # Fetch one record and return result
+        reports = cursor1.fetchall()
+        if reports:
+            msg = ''
+        return render_template('reports.html', patient=patient, reports=reports, msg=msg)
+    return redirect(url_for('login'))
+
+# http://localhost:5000/<int:id>/active- this will be active the account
 @app.route('/<int:id>/active', methods=['GET','POST'])
 def active(id):
     # Output message if something goes wrong...
@@ -354,7 +418,9 @@ def delete(id):
                 cursor.execute('DELETE FROM user WHERE id = %s', (id,))
             else:
                 cursor.execute('DELETE FROM patient WHERE id = %s', (id,))
-            mysql.connection.commit()
+                mysql.connection.commit()
+                cursor.execute('DELETE FROM report WHERE userid = %s', (id,))
+                mysql.connection.commit()
             # Show the profile page with account info
             return redirect(url_for('list'))
     # User is not loggedin redirect to login page
@@ -406,18 +472,18 @@ def update(id,type):
             patient = cursor.fetchone()
             if request.method == 'POST':
                 # Create variables for easy access
-                file = request.form['file']
-                name = request.form['name']
-                firstname = request.form['firstname']
-                description = request.form['description']
-                drug = request.form['drug']
+                email = request.form['email']
+                phone = request.form['phone']
+                address = request.form['address']
+                city = request.form['city']
+                postal = request.form['postal']
                 # Check if variable not null
-                if name is None or firstname is None or file is None or drug is None or description is None:
+                if email is None or phone is None or address is None or city is None or postal is None :
                      msg = 'Please fill out the form!'
                 else:
                     # now insert update into patient table
-                    cursor.execute('UPDATE patient SET name=%s, firstname=%s, description=%s, file=%s, drug=%s where id=%s',
-                                (name, firstname, description, file, drug, id, ))
+                    cursor.execute('UPDATE patient SET email=%s, phone=%s, address=%s, city=%s, postal=%s where id=%s',
+                                (email, phone, address, city, postal, id, ))
                     mysql.connection.commit()
                     return redirect(url_for('list'))
     if type=='user':

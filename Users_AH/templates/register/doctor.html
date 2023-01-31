@@ -5,12 +5,7 @@
 {% block content %}
 <h2>Add an User</h2>
 <div class="register" style="padding: inherit; margin: inherit;">
-<h1>Register</h1>
-{% if session['role'] != 'Doctor' %}
-<div class="links">
-	<a href="{{ url_for('register_doctor') }}" class="active">Doctor</a>
-	<a href="{{ url_for('register_patient') }}">Patient</a>
-</div>
+<h1>Register Doctor</h1>
 <form action="{{ url_for('register_doctor') }}" method="post" autocomplete="off">
 	<label for="name">
 		<i class="fas fa-user-md"></i>
@@ -36,16 +31,17 @@
 	<select name="role">
 		<optgroup label="Role">
 		<option value="Admin">Administrator</option>
-		<option value="Doctor">Doctor</option>
+		<option value="General practitioner">General practitioner</option>
+		<option value="Surgeon">Surgeon</option>
+		<option value="Anesthetist">Anesthetist</option>
+		<option value="Prosthetist">Prosthetist</option>
+		<option value="Dentist">Dentist</option>
+		<option value="Cardiac">Cardiac</option>
 	</optgroup>
 	</select>
 	<!-- /** INSERT INTO `user` (`name`, `firstname`, `email`, `phone`, `date`, `status`, `login`, `password`, `role`) **/ -->
 	<div class="msg">{{ msg }}</div>
 	<input type="submit" value="Save">
 </form>
-{% else %}
-	<a href="{{ url_for('register_patient') }}">Patient</a>
-	<h2>You Will Not Pass ! </h2>
-{% endif %}
 </div>
 {% endblock %}

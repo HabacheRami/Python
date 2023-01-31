@@ -81,6 +81,7 @@ body {
 .register form input[type="number"],
 .register form input[type="email"],
 .register form input[type="date"],
+.register form input[type="tel"],
 .register form input[type="drug"] {
     width: 310px;
     height: 50px;

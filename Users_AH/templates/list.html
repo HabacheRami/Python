@@ -13,14 +13,14 @@
     <hr>
     <table style="border-collapse:collapse">
         <tr>
-            <td> Nom </td>
-            <td> Prénom </td>
+            <td> Name </td>
+            <td> Firstname </td>
             <td> Email </td>
             <td> Phone </td>
             <td> Date </td>
             <td> Active </td>
             <td> Role </td>
-            {% if session['role'] != 'Doctor' %} 
+            {% if session['role'] == 'Supervisor' or session['role'] == 'Admin' %} 
                 {% if doctor.role != "Supervisor" %}
                     <td> Update </td>
                     <td> Delete </td>
@@ -40,7 +40,7 @@
             <td> {{ doctor.date }}</td>
             <td> {% if doctor.actived == 1 %} Yes {% else %} No {% endif %}</td>
             <td> {{ doctor.role }}</td>
-            {% if session['role'] != 'Doctor' %}
+            {% if session['role'] == 'Supervisor' or session['role'] == 'Admin' %}
                 {% if doctor.role != "Supervisor" %}
                     <td><form method="" action="{{ url_for('update', id=doctor.id , type='user') }}">
                         <button type="submit"><i class="fas fa-pen" style="color: green;"></i></button>
@@ -66,38 +66,47 @@
 {% endfor %}
 
 <h3>Patients</h3>
-{% if patients %}{% else %} <div class="msg">{{ msg }}</div>{% endif %}
+{% if patients %}{% else %} <div class="msg">{{ msgp }}</div>{% endif %}
 {% for patient in patients %}
 <div>
     <h3> <i class="far fa-address-card"></i> {{patient.name}} {{patient.firstname}}</h3>
     <hr>
     <table style="border-collapse:collapse">
         <tr>
-            <td> Nom </td>
-            <td> Prénom </td>
+            <td> Name </td>
+            <td> Firstname </td>
             <td> Date </td>
-            <td> Description </td>
-            <td> Drug </td>
-            <td> File </td>
-            <td> Update </td>
-            <td> Delete </td>
+            <td> Email </td>
+            <td> Phone </td>
+            {% if session['role'] != 'Supervisor' or session['role'] != 'Admin' %}
+                {% if session['id'] == patient.doctor %}
+                    <td> Report </td>
+                    <td> Update </td>
+                    <td> Delete </td>
+                {% endif %}
+            {% endif %}
         </tr>
         <tr>
             <td> {{ patient.name }}</td>
             <td> {{ patient.firstname }}</td>
             <td> {{ patient.date }}</td>
-            <td> {{ patient.description }}</td>
-            <td> {{ patient.drug }}</td>
-            <td> {{ patient.file }}</td>
+            <td> {{ patient.email }}</td>
+            <td> {{ patient.phone }}</td>
             
-            <td><form method="" action="{{ url_for('update', id=patient.id , type='user') }}">
-                <input type="hidden" name="type" value="patient">
-                <button type="submit"><i class="fas fa-pen" style="color: green;"></i></button>
-              </form></td>
-            <td><form method="post" action="{{ url_for('delete', id=patient.id) }}">
-                <input type="hidden" name="type" value="patient">
-                <button type="submit"><i class="fas fa-trash" style="color: red;"></i></button>
-              </form></td>
+            {% if session['role'] != 'Supervisor' or session['role'] != 'Admin' %}
+                {% if session['id'] == patient.doctor %}
+                    <td><form method="" action="{{ url_for('report', id=patient.id) }}">
+                        <button type="submit"><i class="fas fa-plus" style="color: green;"></i></button>
+                    </form></td>
+                    <td><form method="" action="{{ url_for('update', id=patient.id , type='patient') }}">
+                        <button type="submit"><i class="fas fa-pen" style="color: green;"></i></button>
+                    </form></td>
+                    <td><form method="post" action="{{ url_for('delete', id=patient.id) }}">
+                        <input type="hidden" name="type" value="patient">
+                        <button type="submit"><i class="fas fa-trash" style="color: red;"></i></button>
+                    </form></td>
+                {% endif %}
+            {% endif %}
         </tr>
     </table>
 </div>

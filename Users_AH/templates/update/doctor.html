@@ -19,11 +19,11 @@
 	<label for="email">
 		<i class="fas fa-envelope"></i>
 	</label>
-	<input type="text" name="email" value="{{ doctor.email }}" id="email" required>
+	<input type="email" name="email" value="{{ doctor.email }}" id="email" required>
 	<label for="phone">
 		<i class="fas fa-phone-square"></i>
 	</label>
-	<input type="text" id="phone" name="phone" value="{{ doctor.phone }}" pattern="[0-9]{10}" required>
+	<input type="tel" id="phone" name="phone" value="{{ doctor.phone }}" pattern="[0-9]{10}" required>
 	<label for="date">
 		<i class="fas fa-calendar"></i>
 	</label>

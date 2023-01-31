@@ -5,38 +5,64 @@
 {% block content %}
 <h2>Add an User</h2>
 <div class="register" style="padding: inherit; margin: inherit;">
-<h1>Register</h1>
-<div class="links">
-	{% if session['role'] != 'Doctor' %}
-	<a href="{{ url_for('register_doctor') }}">Doctor</a>
-	{% endif %}
-	<a href="{{ url_for('register_patient') }}" class="active">Patient</a>
-</div>
+<h1>Register Patient</h1>
 <form action="{{ url_for('register_patient') }}" method="post" autocomplete="off">
-	<label for="file">
-		<i class="fas fa-archive"></i>
-	</label>
-	<input type="number" name="file" placeholder="File" id="file" required>
 	<label for="name">
 		<i class="fas fa-thermometer-full"></i>
 	</label>
 	<input type="text" name="name" placeholder="Name" id="name" required>
+
 	<label for="firstname">
 		<i class="fas fa-user"></i>
 	</label>
 	<input type="text" name="firstname" placeholder="Firstname" id="firstname" required>
-	<label for="description">
-		<i class="fas fa-comment"></i>
-	</label>
-	<textarea type="text" id="description" name="description" rows="5" cols="39" placeholder="Description"></textarea>
-	<label for="drug" style="margin-top: 20px;">
-		<i class="fas fa-archive"></i>
-	</label>
-	<input type="drug" name="drug" placeholder="Drug" id="drug" style="margin-top: 20px;" required>
+
 	<label for="date">
 		<i class="fas fa-calendar"></i>
 	</label>
 	<input type="date" id="date" name="date" max="{{ dat }}" required>
+
+	<label for="email">
+		<i class="fas fa-envelope"></i>
+	</label>
+	<input type="email" name="email" placeholder="email" id="email" required>
+	
+	<label for="phone">
+		<i class="fas fa-phone-square"></i>
+	</label>
+	<input type="tel" id="phone" name="phone" placeholder="phone" pattern="[0-9]{10}" required>
+
+	<label for="address">
+		<i class="fas fa-address-card"></i>
+	</label>
+	<input type="text" name="address" placeholder="address" id="address" required>
+
+	<label for="city">
+		<i class="fas fa-address-card"></i>
+	</label>
+	<input type="text" name="city" placeholder="city" id="city" required>
+
+	<label for="postal">
+		<i class="fas fa-user"></i>
+	</label>
+	<input type="text" name="postal" placeholder="postal" pattern="[0-9]{5}" id="postal" required>
+
+	<label for="blood">
+		<i class="fas fa-user"></i>
+	</label>
+	<select name="blood" required>
+		<optgroup label="blood">
+		<option value="A+">A+</option>
+		<option value="A-">A-</option>
+		<option value="B+">B+</option>
+		<option value="B-">B-</option>
+		<option value="O+">O+</option>
+		<option value="O-">O-</option>
+		<option value="AB+">AB+</option>
+		<option value="AB-">AB-</option>
+	</optgroup>
+	</select>
+
 	<div class="msg">{{ msg }}</div>
 	<input type="submit" value="Save">
 	<!-- /** INSERT INTO `patient` (`username`, `file`, `firstname`, `description`, `drug`, `date`) **/ -->
