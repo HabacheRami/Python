@@ -14,7 +14,7 @@
 				<h1>American Hospital</h1>
                 <a href="{{ url_for('home') }}"><i class="fas fa-home"></i>Home</a>
 				<a href="{{ url_for('list') }}"><i class="fas fa-list"></i>List</a>
-				{% if session['role']!='Admin' or sessino['role']!='Supervisor' %}
+				{% if session['role']!='Admin' or session['role']!='Supervisor' %}
                 <a href="{{ url_for('register_patient') }}"><i class="fas fa-user-plus"></i>Add User</a>
 				{% else %}
                 <a href="{{ url_for('register_doctor') }}"><i class="fas fa-user-plus"></i>Add User</a>
