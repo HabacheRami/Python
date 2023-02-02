@@ -1,0 +1,61 @@
+{% extends 'layout.html' %}
+
+{% block title %}List{% endblock %}
+
+{% block content %}
+
+<h2>Report</h2>
+
+<h3>Patients</h3>
+<div>
+   <hr>
+    <table style="border-collapse:collapse">
+        <tr>
+            <td> Name </td>
+            <td> Firstname </td>
+            <td> Blood </td>
+            <td> Date </td>
+            <td> Email </td>
+            <td> Phone </td>
+            <td> Address </td>
+            <td> City </td>
+            <td> Postal </td>
+        </tr>
+        <tr>
+            <td> {{ patient['name'] }}</td>
+            <td> {{ patient['firstname'] }}</td>
+            <td> {{ patient['blood'] }}</td>
+            <td> {{ patient['date'] }}</td>
+            <td> {{ patient['email'] }}</td>
+            <td> {{ patient['phone'] }}</td>
+            <td> {{ patient['address'] }}</td>
+            <td> {{ patient['city'] }}</td>
+            <td> {{ patient['postal'] }}</td>
+        </tr>
+    </table>
+</div>
+
+<td><form method="" action="{{ url_for('tmp', id = patient['id']) }}">
+    <center><button type="submit">Add reports<i class="fas fa-plus" style="color: green;"></i></button></center>
+</form></td>
+<div>
+    <h3>Reports</h3>
+{% if reports %}{% else %} <div class="msg">{{ msg }}</div>{% endif %}
+    {% for report in reports %}
+    <hr>
+    <table style="border-collapse:collapse">
+        <tr>
+            <td> Date </td>
+            <td> Decription </td>
+            <td> drug </td>
+           
+        </tr>
+        <tr>
+            <td> {{ report.date }}</td>
+            <td> {{ report.description }}</td>
+            <td> {{ report.drug }}</td>
+        </tr>
+    </table>
+</div>
+{% endfor %}
+{% endblock %}
