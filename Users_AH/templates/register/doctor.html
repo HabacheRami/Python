@@ -6,6 +6,7 @@
 <h2>Add an User</h2>
 <div class="register" style="padding: inherit; margin: inherit;">
 <h1>Register Doctor</h1>
+<div class="msg">{{ msg }}</div>
 <form action="{{ url_for('register_doctor') }}" method="post" autocomplete="off">
 	<label for="name">
 		<i class="fas fa-user-md"></i>
@@ -39,8 +40,7 @@
 		<option value="Cardiac">Cardiac</option>
 	</optgroup>
 	</select>
-	<!-- /** INSERT INTO `user` (`name`, `firstname`, `email`, `phone`, `date`, `status`, `login`, `password`, `role`) **/ -->
-	<div class="msg">{{ msg }}</div>
+	
 	<input type="submit" value="Save">
 </form>
 </div>

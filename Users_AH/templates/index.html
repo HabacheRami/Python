@@ -11,6 +11,7 @@
 	<body>
 		<div class="login">
 			<h1>American Hospital</h1>
+			<div class="msg">{{ msg }}</div>
 			<form action="{{ url_for('login') }}" method="post">
 				<label for="username">
 					<i class="fas fa-user"></i>
@@ -20,7 +21,6 @@
 					<i class="fas fa-lock"></i>
 				</label>
 				<input type="password" name="password" placeholder="Password" id="password" required>
-				<div class="msg">{{ msg }}</div>
 				<input type="submit" value="Login">
 			</form>
 		</div>

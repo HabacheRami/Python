@@ -155,7 +155,7 @@ def scanports():
                 start=end
                 end=tmp
             # Verification loop of each chosen port
-            for port in range(start,end+1)
+            for port in range(start,end+1):
                 if scan(port):
                     scans[port]="open"
                 else:

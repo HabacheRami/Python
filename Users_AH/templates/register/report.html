@@ -6,6 +6,7 @@
     <h2>Add an User</h2>
     <div class="register" style="padding: inherit; margin: inherit;">
         <h1>New Report</h1>
+        <div class="msg">{{ msg }}</div>
         <form action="{{ url_for('new_report') }}" method="post" autocomplete="off">
             <label for="description">
                 <i class="fas fa-comment"></i>
@@ -17,7 +18,7 @@
             <input type="drug" name="drug" placeholder="Drug" id="drug" style="margin-top: 20px;" required>
             
             <input type="hidden" name="id" value="{{id}}">
-            <div class="msg">{{ msg }}</div>
+            
             <input type="submit" value="Save">
         </form>
     </div>
