@@ -1,0 +1,22 @@
+
+{% extends 'layout.html' %}
+
+{% block title %}Scanport{% endblock %}
+
+{% block content %}
+<br><br>
+<form method="post" action="{{ url_for('scanports') }}">
+    <input type="number" name="start" placeholder="1" min="1" max="65536" required>
+    <input type="number" name="end" placeholder="55" min="1" max="65536" required>
+    <button type="submit"><i class="fas fa-search" style="color: green;"></i></button>
+</form></td>
+
+<h2>ScanPort</h2>
+<div>
+<center>
+    {% for port in scans %}
+       <p>Port number {{ port }} is {{ scans[port] }} !!</p>
+    {% endfor %}        
+</div>
+
+{% endblock %}

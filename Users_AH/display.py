@@ -1,8 +1,9 @@
 from datetime import date
 from conn import app, mysql, render_template, request, redirect, session, url_for
 import MySQLdb.cursors
-
-import log
+import socket
+import socket
+from pprint import pprint
 
 # http://localhost:5000/list- this will be the data list page
 @app.route('/list')
@@ -115,3 +116,50 @@ def search():
                     msg1 = ''
             return render_template('list.html', doctors=doctors, patients=patients, msg=msg, msg1=msg1)
         return redirect(url_for('login'))
+
+
+# Function to scan port on the server
+server="127.0.0.1"
+s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+def scan(port):
+    # Check the status of the port
+    try:
+        s.connect((server, port))  
+        pprint(port)     
+        return True
+    except:       
+        return False
+    s.close()
+
+# Function to go at page for the scanport
+@app.route('/scan_page')
+def scan_page():
+    return render_template('scan.html')
+
+# Function to display the results of the scanport()
+@app.route('/scanports', methods=['POST'])
+def scanports():
+    if 'loggedin' in session:
+        # Check datetime now with expired time account
+        today = date.today().strftime('%Y-%m-%d')
+        if session['date'] <= today:
+            return redirect(url_for('update_pwd'))
+        # Method verification and variable initialization 
+        if request.method == 'POST':
+            start = int(request.form['start'])
+            end = int(request.form['end'])  
+            scans={}
+            # Inversion of variables if start is greater than end
+            if start>end : 
+                tmp=start
+                start=end
+                end=tmp
+            # Verification loop of each chosen port
+            for port in range(start,end+1)
+                if scan(port):
+                    scans[port]="open"
+                else:
+                    scans[port]="close"
+                    continue
+            return render_template('scan.html', scans=scans)
+    return redirect(url_for('login'))
