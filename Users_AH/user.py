@@ -182,6 +182,7 @@ def delete(id):
                 type = request.form['type']
                 if type=='user':
                     cursor.execute('DELETE FROM user WHERE id = %s', (id,))
+                    mysql.connection.commit()
                 else:
                     cursor.execute('DELETE FROM patient WHERE id = %s', (id,))
                     mysql.connection.commit()

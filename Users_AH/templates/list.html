@@ -5,6 +5,127 @@
 {% block content %}
 
 <h2>List</h2>
+
+{% if session['role'] == 'Supervisor' or session['role'] == 'Admin' %}
+<h3>Supervisor</h3>
+    {% for sadmin in sadmins %}
+    <div>
+        <h3> <i class="far fa-address-card"></i> {{sadmin.username}}</h3>
+        <hr>
+        <table style="border-collapse:collapse">
+            <tr>
+                <td> Name </td>
+                <td> Firstname </td>
+                <td> Email </td>
+                <td> Phone </td>
+                <td> Date </td>
+                <td> Active </td>
+                <td> Role </td>
+                {% if session['role'] == 'Supervisor' or session['role'] == 'sAdmin' %} 
+                    {% if sadmin.role != "Supervisor" %}
+                        <td> Update </td>
+                        <td> Delete </td>
+                        {% if sadmin.actived==0 %}
+                            <td> Enable </td>
+                        {% else %}
+                            <td> Disable </td>
+                        {% endif %}
+                    {% endif %}   
+                {% endif %}
+            </tr>
+            <tr>
+                <td> {{ sadmin.name }}</td>
+                <td> {{ sadmin.firstname }}</td>
+                <td> {{ sadmin.email }}</td>
+                <td> {{ sadmin.phone }}</td>
+                <td> {{ sadmin.date }}</td>
+                <td> {% if sadmin.actived == 1 %} Yes {% else %} No {% endif %}</td>
+                <td> {{ sadmin.role }}</td>
+                {% if session['role'] == 'Supervisor' or session['role'] == 'sAdmin' %}
+                    {% if sadmin.role != "Supervisor" %}
+                        <td><form method="" action="{{ url_for('update', id=sadmin.id , type='user') }}">
+                            <button type="submit"><i class="fas fa-pen" style="color: green;"></i></button>
+                        </form></td>
+                        <td><form method="post" action="{{ url_for('delete', id=sadmin.id) }}">
+                            <input type="hidden" name="type" value="user">
+                            <button type="submit"><i class="fas fa-trash" style="color: red;"></i></button>
+                        </form></td>
+                        <td><form method="post" action="{{ url_for('active', id=sadmin.id) }}">
+                            {% if sadmin.actived==0 %}
+                                <input type="hidden" name="enable" value="1">
+                                <button type="submit"><i class="fas fa-eye" style="color: green;"></i></button>
+                            {% else %}
+                                <input type="hidden" name="enable" value="0">
+                                <button type="submit"><i class="fas fa-eye-slash" style="color: red;"></i></button>
+                            {% endif %}
+                        </form></td>
+                    {% endif %}
+                {% endif %}
+            </tr>
+        </table>
+    </div>
+    {% endfor %}
+    <h3>Admins</h3>
+    {% if admins %}{% else %} <div class="msga">{{ msg }}</div>{% endif %}
+    {% for admin in admins %}
+    <div>
+        <h3> <i class="far fa-address-card"></i> {{admin.username}}</h3>
+        <hr>
+        <table style="border-collapse:collapse">
+            <tr>
+                <td> Name </td>
+                <td> Firstname </td>
+                <td> Email </td>
+                <td> Phone </td>
+                <td> Date </td>
+                <td> Active </td>
+                <td> Role </td>
+                {% if session['role'] == 'Supervisor' or session['role'] == 'Admin' %} 
+                    {% if admin.role != "Supervisor" %}
+                        <td> Update </td>
+                        <td> Delete </td>
+                        {% if admin.actived==0 %}
+                            <td> Enable </td>
+                        {% else %}
+                            <td> Disable </td>
+                        {% endif %}
+                    {% endif %}   
+                {% endif %}
+            </tr>
+            <tr>
+                <td> {{ admin.name }}</td>
+                <td> {{ admin.firstname }}</td>
+                <td> {{ admin.email }}</td>
+                <td> {{ admin.phone }}</td>
+                <td> {{ admin.date }}</td>
+                <td> {% if admin.actived == 1 %} Yes {% else %} No {% endif %}</td>
+                <td> {{ admin.role }}</td>
+                {% if session['role'] == 'Supervisor' or session['role'] == 'Admin' %}
+                    {% if admin.role != "Supervisor" %}
+                        <td><form method="" action="{{ url_for('update', id=admin.id , type='user') }}">
+                            <button type="submit"><i class="fas fa-pen" style="color: green;"></i></button>
+                        </form></td>
+                        <td><form method="post" action="{{ url_for('delete', id=admin.id) }}">
+                            <input type="hidden" name="type" value="user">
+                            <button type="submit"><i class="fas fa-trash" style="color: red;"></i></button>
+                        </form></td>
+                        <td><form method="post" action="{{ url_for('active', id=admin.id) }}">
+                            {% if admin.actived==0 %}
+                                <input type="hidden" name="enable" value="1">
+                                <button type="submit"><i class="fas fa-eye" style="color: green;"></i></button>
+                            {% else %}
+                                <input type="hidden" name="enable" value="0">
+                                <button type="submit"><i class="fas fa-eye-slash" style="color: red;"></i></button>
+                            {% endif %}
+                        </form></td>
+                    {% endif %}
+                {% endif %}
+            </tr>
+        </table>
+    </div>
+    {% endfor %}
+{% endif %}
+
 <h3>Doctors</h3>
 {% if doctors %}{% else %} <div class="msg">{{ msg }}</div>{% endif %}
 {% for doctor in doctors %}
@@ -79,11 +200,9 @@
             <td> Email </td>
             <td> Phone </td>
             {% if session['role'] != 'Supervisor' or session['role'] != 'Admin' %}
-                {% if session['id'] == patient.doctor %}
                     <td> Report </td>
                     <td> Update </td>
                     <td> Delete </td>
-                {% endif %}
             {% endif %}
         </tr>
         <tr>
@@ -94,7 +213,6 @@
             <td> {{ patient.phone }}</td>
             
             {% if session['role'] != 'Supervisor' or session['role'] != 'Admin' %}
-                {% if session['id'] == patient.doctor %}
                     <td><form method="" action="{{ url_for('report', id=patient.id) }}">
                         <button type="submit"><i class="fas fa-plus" style="color: green;"></i></button>
                     </form></td>
@@ -105,7 +223,6 @@
                         <input type="hidden" name="type" value="patient">
                         <button type="submit"><i class="fas fa-trash" style="color: red;"></i></button>
                     </form></td>
-                {% endif %}
             {% endif %}
         </tr>
     </table>

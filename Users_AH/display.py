@@ -9,6 +9,7 @@ from pprint import pprint
 @app.route('/list')
 def list():
         # Output message if something goes wrong...
+        msga = 'Not data found'
         msg = 'Not data found'
         msgp = 'Not data found'
         # Check if user is lopgedin
@@ -17,20 +18,32 @@ def list():
             today = date.today().strftime('%Y-%m-%d')
             if session['date'] <= today:
                 return redirect(url_for('update_pwd'))
-            # Select data from user
+            # Select data from user only doctors
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-            cursor.execute('SELECT * FROM user')
+            cursor.execute('SELECT * FROM user WHERE role != %s AND role != %s', ('Admin', 'Supervisor',))
             # Fetch one record and return result
             doctors = cursor.fetchall()
             if doctors:
                 msg = ''
+            # Select data from patient for doctors
             cursor2 = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
             cursor2.execute('SELECT * FROM patient')
             # Fetch one record and return result
             patients = cursor2.fetchall()
             if patients:
                 msgp = ''
-            return render_template('list.html', doctors=doctors, patients=patients, msgp=msgp, msg=msg)
+            # Select data from user ony admin
+            cursor3 = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            cursor3.execute('SELECT * FROM user WHERE role = %s', ('Admin',))
+            # Fetch one record and return result
+            admins = cursor3.fetchall()
+            if admins:
+                msga = ''
+            # Select data from user ony Sadmin
+            cursor4 = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            cursor4.execute('SELECT * FROM user WHERE role = %s', ('Supervisor',))
+            sadmins = cursor4.fetchall()
+            return render_template('list.html', sadmins=sadmins, admins=admins, doctors=doctors, patients=patients, msga=msga, msgp=msgp, msg=msg)
         return redirect(url_for('login'))
 
     # http://localhost:5000/profile - this will be the profile page, only accessible for loggedin users
